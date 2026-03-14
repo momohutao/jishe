@@ -2,11 +2,11 @@
   <div id="app">
     <!-- 导航栏 -->
     <header class="navbar">
-      <!-- 左侧 Logo 和项目名称 -->
-      <div class="logo">
+      <!-- 左侧 Logo 和项目名称（点击回到主页） -->
+      <router-link to="/" class="logo">
         <span class="logo-icon">🤖</span>
         <span class="project-name">AI 助手</span>
-      </div>
+      </router-link>
 
       <!-- 右侧导航链接 -->
       <nav class="nav-links">
@@ -49,11 +49,13 @@ export default {
   border-bottom: 1px solid #e9ecef;
 }
 
-/* Logo 区域 */
+/* Logo 区域（作为链接） */
 .logo {
   display: flex;
   align-items: center;
   gap: 8px;
+  text-decoration: none; /* 去除下划线 */
+  color: inherit; /* 继承文字颜色 */
 }
 
 .logo-icon {
@@ -83,7 +85,7 @@ export default {
   color: #42b983;
 }
 
-/* 当前激活的链接样式（可根据需要调整） */
+/* 当前激活的链接样式 */
 .nav-links a.router-link-exact-active {
   color: #42b983;
   border-bottom: 2px solid #42b983;

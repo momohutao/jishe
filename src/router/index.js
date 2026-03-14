@@ -5,7 +5,8 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: '/ai-slide', // 重定向到 /ai-slide
+      name: 'Home',
+      component: () => import('../router/Home.vue'), // 假设有一个 Home 组件
     },
     {
       path: '/ai-slide',
