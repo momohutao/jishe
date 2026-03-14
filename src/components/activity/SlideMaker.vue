@@ -1,19 +1,25 @@
 <template>
   <div class="split-layout">
-    <!-- 左侧对话面板：固定高度，内部滚动 -->
+    <!-- 左侧对话面板（老师与AI的交互） -->
     <div class="chat-panel">
       <div class="messages-container" ref="messagesContainer">
         <div class="messages-list">
-          <!-- 动态消息（幻灯片不使用特殊卡片） -->
-          <div
-            v-for="(msg, idx) in displayedMessages"
-            :key="idx"
-            class="message"
-            :class="msg.role"
-            :style="{ animationDelay: `${idx * 0.1}s` }"
-          >
-            <div class="avatar">{{ msg.role === 'user' ? '👤' : '🤖' }}</div>
-            <div class="bubble">{{ msg.content }}</div>
+          <!-- 动态消息，增加 fileAttachment 判断 -->
+          <div v-for="(msg, idx) in displayedMessages" :key="idx" class="message-wrapper">
+            <div class="message" :class="msg.role" :style="{ animationDelay: `${idx * 0.1}s` }">
+              <div class="avatar">{{ msg.role === 'user' ? '👤' : '🤖' }}</div>
+              <div class="bubble">{{ msg.content }}</div>
+            </div>
+            <!-- 如果该消息需要显示文件附件，则在气泡下方显示 -->
+            <div v-if="msg.fileAttachment" class="file-attachment">
+              <div class="file-card">
+                <!-- 将图标换成 PPT 专用图标（幻灯片） -->
+                <span class="file-icon">📽️</span>
+                <span class="file-name">1沁园春长沙.pptx</span>
+                <span class="file-size">(2.3 MB)</span>
+                <span class="download-icon" title="下载文件">⬇️</span>
+              </div>
+            </div>
           </div>
 
           <!-- 正在输入指示器 -->
@@ -26,12 +32,11 @@
             </div>
           </div>
 
-          <!-- 底部锚点，用于自动滚动 -->
           <div ref="messagesEnd" class="scroll-anchor"></div>
         </div>
       </div>
 
-      <!-- 底部输入框（只读演示） -->
+      <!-- 只读输入框（演示用） -->
       <div class="input-area">
         <input
           type="text"
@@ -44,57 +49,41 @@
       </div>
     </div>
 
-    <!-- 右侧面板：固定高度，内部滚动，展示幻灯片预览 -->
-    <div class="document-panel" ref="documentPanel">
+    <!-- 右侧面板：PPT大纲缩略图(左) + 大图预览(右) - 优化滚动条分离 -->
+    <div class="document-panel">
       <div class="doc-content">
-        <h3>📽️ 幻灯片预览 · 生成结果</h3>
+        <h3>📽️ 幻灯片预览 · 《沁园春·长沙》课件</h3>
 
-        <!-- 模拟幻灯片缩略图列表 -->
-        <div class="slide-list">
-          <div class="slide-item">
-            <div class="slide-number">1</div>
-            <div class="slide-preview">
-              <div class="slide-title">人工智能导论</div>
-              <div class="slide-subtitle">大学通识课 · 2学时</div>
+        <!-- 双栏预览布局：两个独立滚动区域 -->
+        <div class="preview-layout">
+          <!-- 左侧缩略图大纲 (占1/4，独立滚动) -->
+          <div class="thumbnail-list" ref="thumbnailList">
+            <div
+              v-for="(img, index) in slideImages"
+              :key="index"
+              class="thumbnail-item"
+              @click="scrollToLarge(index)"
+            >
+              <img :src="img.thumb" :alt="'缩略图' + (index + 1)" loading="lazy" />
+              <span class="thumb-page">{{ index + 1 }}</span>
             </div>
           </div>
-          <div class="slide-item">
-            <div class="slide-number">2</div>
-            <div class="slide-preview">
-              <div class="slide-bullet">• 什么是人工智能？</div>
-              <div class="slide-bullet">• 发展简史</div>
-              <div class="slide-bullet">• 主要研究领域</div>
-            </div>
-          </div>
-          <div class="slide-item">
-            <div class="slide-number">3</div>
-            <div class="slide-preview">
-              <div class="slide-bullet">• 机器学习基础</div>
-              <div class="slide-bullet">• 监督学习 vs 无监督学习</div>
-              <div class="slide-bullet">• 神经网络简介</div>
-            </div>
-          </div>
-          <div class="slide-item">
-            <div class="slide-number">4</div>
-            <div class="slide-preview">
-              <div class="slide-bullet">• 图像识别案例</div>
-              <div class="slide-bullet">• 自然语言处理案例</div>
-              <div class="slide-bullet">• 动手体验：Teachable Machine</div>
-            </div>
-          </div>
-          <div class="slide-item">
-            <div class="slide-number">5</div>
-            <div class="slide-preview">
-              <div class="slide-bullet">• 算法偏见</div>
-              <div class="slide-bullet">• AI伦理讨论</div>
-              <div class="slide-bullet">• 科技向善</div>
+
+          <!-- 右侧大图预览 (占3/4，独立滚动) -->
+          <div class="large-preview" ref="largePreviewContainer">
+            <div
+              v-for="(img, index) in slideImages"
+              :key="index"
+              class="large-item"
+              :data-index="index"
+            >
+              <img :src="img.large" :alt="'幻灯片' + (index + 1)" loading="lazy" />
+              <div class="page-number">{{ index + 1 }} / {{ slideImages.length }}</div>
             </div>
           </div>
         </div>
 
-        <div class="info-note">
-          ⚡ 当前为演示模式，对话内容为预设示例。实际使用时将根据您的需求生成幻灯片。
-        </div>
+        <!-- 说明文字已移除（原 info-note 已删除） -->
       </div>
     </div>
   </div>
@@ -103,58 +92,75 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
 
-// 幻灯片制作示例对话流程
+// 使用 import.meta.glob 加载 pre_ppt 文件夹下的所有 png 图片（按顺序 ppt1.png ~ ppt24.png）
+const imageModules = import.meta.glob('../../assets/images/pre_ppt/*.png', { eager: true })
+
+// 提取路径并按文件名中的数字排序
+const imagePaths = Object.keys(imageModules)
+  .sort((a, b) => {
+    const numA = parseInt(a.match(/ppt(\d+)\.png/)?.[1] || '0')
+    const numB = parseInt(b.match(/ppt(\d+)\.png/)?.[1] || '0')
+    return numA - numB
+  })
+  .map((key) => imageModules[key].default)
+
+const slideImages = ref(imagePaths.map((src) => ({ large: src, thumb: src })))
+
+// 对话流程：依据《沁园春·长沙》PPT内容设计，用户身份为老师
+// 为第二条消息（AI的详细回复）增加 fileAttachment 属性
 const conversationFlow = [
   {
     role: 'user',
-    content: '我想做一个关于“人工智能导论”的幻灯片，面向大学通识课学生。',
-  },
-  {
-    role: 'ai',
-    content: '好的！我可以帮您规划大纲。您希望包含哪些部分？比如历史、原理、应用、伦理等。',
-  },
-  {
-    role: 'user',
-    content: '对，要包括历史、机器学习基础、几个典型应用，还有伦理讨论。',
+    content:
+      '老师：我想制作一份关于毛泽东《沁园春·长沙》的语文教学PPT，需要涵盖词作原文、背景、意象分析、艺术特色和课堂练习，大概20多页。',
   },
   {
     role: 'ai',
     content:
-      '明白了。我建议结构如下：\n1. 封面与引言\n2. AI发展简史\n3. 什么是机器学习\n4. 图像识别与NLP案例\n5. 动手体验：Teachable Machine\n6. AI伦理圆桌\n7. 总结与资源\n您觉得如何？',
+      '好的老师。根据您的要求，我参考您提供的PPT素材，为您设计了24页的结构：\n1.封面\n2.导入·诗歌分类简表\n3.题解（沁园春·长沙）\n4.诵读全词\n5.整体感知·四幅图画（独立寒秋、湘江秋景、峥嵘岁月、中流击水）\n6.湘江秋景图（上阙：看万山红遍…）\n7.意象分析·从“看”字领起\n8.意象与意境（结合李可染画作）\n9.上阙小结\n10.峥嵘岁月图（下阙：恰同学少年…）\n11.中流击水图\n12.下阙小结\n13.当堂背诵（挖空练习）\n14.鉴赏拓展·秋诗对比\n15.艺术特色\n16.主题思想\n17.课堂讨论\n18-24.扩展与作业页。右侧预览区已生成全部缩略图。',
+    fileAttachment: true, // 标记此消息下方显示文件附件
   },
   {
     role: 'user',
-    content: '很棒！可以再加一页“未来展望”吗？',
+    content: '结构很专业。请在湘江秋景图那页强调意象与意境的关系，以及“万类霜天竞自由”的象征意义。',
   },
   {
     role: 'ai',
     content:
-      '没问题，我会在第6页之后加入“未来展望：AI与社会”。整体大纲已更新，您可以在右侧看到预览。',
+      '已补充。第7页详细分析了“万山红遍”“层林尽染”“鹰击长空”等意象，指出“竞自由”暗含对自由解放的向往。第8页加入“意象·意境”概念解析，并配以李可染《万山红遍》画作示意。您可以滚动右侧大图查看第7、8页细节。',
   },
   {
     role: 'user',
-    content: '非常好，请把详细内容填充进去。',
+    content:
+      '很好。我还想在最后增加一页“课堂讨论：秋天诗词比较”，对比马致远《天净沙·秋思》的意境。',
   },
   {
     role: 'ai',
     content:
-      '已为您生成初步幻灯片，包含标题、要点和案例。您可以在右侧预览页面缩略图，并随时调整内容。',
+      '没问题，已加入第23页，标题为“拓展·秋意对比”，并附上问题引导。第24页为课程结束语。现在全部24页已根据您上传的PPT内容填充完毕，所有图片均来自您的素材文件夹。',
+  },
+  {
+    role: 'user',
+    content: '太好了，这样学生就能通过意象深入理解词人的豪情了。',
+  },
+  {
+    role: 'ai',
+    content: '感谢老师认可！您可以在右侧预览每页具体内容，如需调整某页文字或顺序，随时告诉我。',
   },
 ]
 
 const displayedMessages = ref([])
 const isTyping = ref(false)
 const isPlaying = ref(false)
-const showDocument = ref(true) // 右侧始终显示预览
 
 // DOM 引用
 const messagesContainer = ref(null)
 const messagesEnd = ref(null)
+const largePreviewContainer = ref(null)
+const thumbnailList = ref(null)
 
-// 睡眠函数
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
-// 滚动到底部（仅容器内滚动）
 const scrollToBottom = async () => {
   await nextTick()
   if (messagesContainer.value) {
@@ -165,32 +171,26 @@ const scrollToBottom = async () => {
   }
 }
 
-// 播放对话动画
 const playConversation = async () => {
   for (let i = 0; i < conversationFlow.length; i++) {
     const msg = conversationFlow[i]
 
-    // AI 消息前显示"正在输入"
     if (msg.role === 'ai') {
       isTyping.value = true
       await scrollToBottom()
-      await sleep(800 + Math.random() * 600) // 模拟思考时间
+      await sleep(800 + Math.random() * 600)
       isTyping.value = false
     } else {
-      await sleep(600) // 用户"输入"时间
+      await sleep(600)
     }
 
-    // 添加消息
     displayedMessages.value.push(msg)
-
     await scrollToBottom()
-    await sleep(1000) // 消息间隔
+    await sleep(1000)
   }
-
   isPlaying.value = false
 }
 
-// 重置并重新播放（暴露给父组件）
 const resetAndPlay = () => {
   displayedMessages.value = []
   isTyping.value = false
@@ -198,17 +198,25 @@ const resetAndPlay = () => {
   playConversation()
 }
 
-// 组件挂载时自动开始
+const scrollToLarge = (index) => {
+  if (largePreviewContainer.value) {
+    const container = largePreviewContainer.value
+    const items = container.children
+    if (items && items[index]) {
+      items[index].scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+}
+
 onMounted(() => {
   playConversation()
 })
 
-// 暴露方法给父组件
 defineExpose({ resetAndPlay })
 </script>
 
 <style scoped>
-/* 完全复用之前的样式，并添加幻灯片预览相关样式 */
+/* 基础布局 */
 .split-layout {
   display: grid;
   grid-template-columns: 1fr 2fr;
@@ -218,6 +226,7 @@ defineExpose({ resetAndPlay })
   overflow: hidden;
 }
 
+/* 左侧对话面板样式 */
 .chat-panel {
   background-color: #f8fafc;
   border-radius: 24px;
@@ -260,6 +269,13 @@ defineExpose({ resetAndPlay })
   flex-direction: column;
   gap: 16px;
   min-height: min-content;
+}
+
+/* 消息包装，用于在消息下方显示文件附件 */
+.message-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .message {
@@ -328,6 +344,58 @@ defineExpose({ resetAndPlay })
   border-bottom-left-radius: 4px;
 }
 
+/* 文件附件卡片样式 */
+.file-attachment {
+  display: flex;
+  justify-content: flex-start;
+  padding-left: 48px; /* 与气泡对齐（考虑头像宽度） */
+}
+
+.file-card {
+  background-color: #f0f4f9;
+  border: 1px solid #d4dee8;
+  border-radius: 16px;
+  padding: 10px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #2c3e50;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: background-color 0.2s;
+  cursor: default;
+}
+
+.file-card:hover {
+  background-color: #e6edf5;
+}
+
+.file-icon {
+  font-size: 20px;
+}
+
+.file-name {
+  font-weight: 500;
+  color: #1a2b3c;
+}
+
+.file-size {
+  color: #7f8c8d;
+  font-size: 13px;
+}
+
+.download-icon {
+  font-size: 16px;
+  opacity: 0.6;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.download-icon:hover {
+  opacity: 1;
+}
+
+/* 打字指示器 */
 .typing-indicator {
   opacity: 1 !important;
   animation: none !important;
@@ -418,7 +486,7 @@ defineExpose({ resetAndPlay })
   cursor: pointer;
 }
 
-/* 右侧文档面板（同前） */
+/* 右侧文档面板：优化滚动条分离 */
 .document-panel {
   background-color: #ffffff;
   border-radius: 24px;
@@ -427,31 +495,17 @@ defineExpose({ resetAndPlay })
   padding: 24px;
   height: 100%;
   max-height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: #d0d9e0 transparent;
-  scrollbar-gutter: stable;
+  overflow: hidden; /* 父容器不滚动，由内部子容器滚动 */
   box-sizing: border-box;
-}
-
-.document-panel::-webkit-scrollbar {
-  width: 6px;
-}
-.document-panel::-webkit-scrollbar-track {
-  background: transparent;
-}
-.document-panel::-webkit-scrollbar-thumb {
-  background-color: #d0d9e0;
-  border-radius: 3px;
-}
-.document-panel::-webkit-scrollbar-thumb:hover {
-  background-color: #b0c0d0;
+  display: flex;
+  flex-direction: column;
 }
 
 .doc-content {
   color: #1a2b3c;
-  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .doc-content h3 {
@@ -461,99 +515,152 @@ defineExpose({ resetAndPlay })
   color: #2c3e50;
   border-bottom: 2px solid #f0f2f5;
   padding-bottom: 8px;
-}
-
-/* 幻灯片预览列表样式 */
-.slide-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin: 16px 0;
-}
-
-.slide-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background-color: #f8fafc;
-  border-radius: 12px;
-  padding: 12px;
-  border: 1px solid #eaeef2;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-}
-.slide-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-.slide-number {
-  width: 28px;
-  height: 28px;
-  background-color: #3498db;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 14px;
   flex-shrink: 0;
 }
 
-.slide-preview {
+/* 双栏预览布局：左右两个独立滚动容器 */
+.preview-layout {
+  display: flex;
+  gap: 16px;
   flex: 1;
+  min-height: 0; /* 关键：让子元素能正确收缩滚动 */
+  height: 100%;
+}
+
+/* 左侧缩略图列表：独立滚动 */
+.thumbnail-list {
+  width: 25%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: #f8fafc;
+  border-radius: 16px;
+  padding: 8px;
+  border: 1px solid #eaeef2;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 12px;
+  scrollbar-width: thin;
+  height: 100%; /* 占满父容器高度 */
 }
 
-.slide-title {
-  font-weight: 600;
-  color: #2c3e50;
-  font-size: 15px;
-}
-
-.slide-subtitle {
-  font-size: 13px;
-  color: #7f8c8d;
-}
-
-.slide-bullet {
-  font-size: 13px;
-  color: #4a5a6e;
-  line-height: 1.5;
-}
-
-.info-note {
-  margin-top: 24px;
-  padding: 12px 16px;
-  background-color: #f0f7ff;
-  border-left: 4px solid #3498db;
+.thumbnail-item {
+  position: relative;
+  cursor: pointer;
   border-radius: 8px;
-  font-size: 14px;
-  color: #2c3e50;
+  overflow: hidden;
+  border: 2px solid transparent;
+  transition:
+    border 0.2s,
+    transform 0.1s;
+  flex-shrink: 0;
 }
 
-/* 响应式布局 */
+.thumbnail-item:hover {
+  border-color: #3498db;
+  transform: scale(1.02);
+}
+
+.thumbnail-item img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  display: block;
+  border-radius: 6px;
+}
+
+.thumb-page {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 12px;
+  line-height: 1;
+}
+
+/* 右侧大图预览：独立滚动 */
+.large-preview {
+  width: 75%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: #f8fafc;
+  border-radius: 16px;
+  padding: 8px;
+  border: 1px solid #eaeef2;
+  scrollbar-width: thin;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 100%; /* 占满父容器高度 */
+}
+
+.large-item {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  background-color: #fff;
+  flex-shrink: 0;
+}
+
+.large-item img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+  border: 1px solid #eaeef2;
+}
+
+.page-number {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  font-size: 14px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+}
+
+/* 响应式 */
 @media (max-width: 968px) {
   .split-layout {
     grid-template-columns: 1fr;
-    grid-template-rows: 300px 400px;
+    grid-template-rows: 300px 500px;
     height: auto;
     max-height: none;
     gap: 16px;
   }
-
   .chat-panel {
     height: 300px;
     max-height: 300px;
   }
-
   .document-panel {
-    height: 400px;
-    max-height: 400px;
+    height: 500px;
+    max-height: 500px;
+  }
+  .preview-layout {
+    flex-direction: column;
+  }
+  .thumbnail-list {
+    width: 100%;
+    flex-direction: row;
+    overflow-y: hidden;
+    overflow-x: auto;
+    padding: 12px;
+    gap: 8px;
+    height: 120px; /* 固定高度，横向滚动 */
+  }
+  .thumbnail-item {
+    min-width: 100px;
+    width: auto;
+  }
+  .large-preview {
+    width: 100%;
+    height: calc(100% - 140px); /* 减去缩略图区域和间距 */
   }
 }
 
@@ -562,27 +669,29 @@ defineExpose({ resetAndPlay })
     max-width: 85%;
     font-size: 14px;
   }
-
   .input-area {
     padding: 12px 16px;
+  }
+  .thumbnail-item {
+    min-width: 80px;
+  }
+  .file-attachment {
+    padding-left: 48px;
   }
 }
 
 @media (max-width: 480px) {
   .split-layout {
-    grid-template-rows: 250px 350px;
+    grid-template-rows: 250px 450px;
   }
-
   .chat-panel {
     height: 250px;
     max-height: 250px;
   }
-
   .document-panel {
-    height: 350px;
-    max-height: 350px;
+    height: 450px;
+    max-height: 450px;
   }
-
   .bubble {
     max-width: 90%;
   }

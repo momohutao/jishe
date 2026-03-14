@@ -16,16 +16,19 @@
 
     <!-- 内容区域：根据选中项展示不同内容 -->
     <div class="content-area">
-      <!-- 编写教案（索引0）使用子组件 LessonPlan -->
+      <!-- 编写教案（索引0） -->
       <LessonPlan v-if="selectedIndex === 0" ref="lessonPlanRef" />
 
-      <!-- 通用智能体 -->
+      <!-- 通用智能体（索引1） -->
       <GeneralAgent v-else-if="selectedIndex === 1" ref="generalAgentRef" />
 
-      <!-- 制作幻灯片 -->
+      <!-- 制作幻灯片（索引2） -->
       <SlideMaker v-else-if="selectedIndex === 2" ref="slideMakerRef" />
 
-      <!-- 其他导航项的占位提示 -->
+      <!-- 数据分析（索引3） -->
+      <DataAnalysis v-else-if="selectedIndex === 3" ref="dataAnalysisRef" />
+
+      <!-- 其他导航项的占位提示（目前仅4项，所以不会进入） -->
       <div v-else class="content-placeholder">
         <p>✨ 其他功能开发中，敬请期待</p>
       </div>
@@ -35,33 +38,38 @@
 
 <script setup>
 import { ref } from 'vue'
-import LessonPlan from '../activity/LessonPlan.vue' // 根据实际路径调整
+import LessonPlan from '../activity/LessonPlan.vue'
 import GeneralAgent from '../activity/GeneralAgent.vue'
 import SlideMaker from '../activity/SlideMaker.vue'
+import DataAnalysis from '../activity/DataAnalysis.vue' // 新增导入
 
 const items = [
   { icon: '📄', text: '编写教案' },
   { icon: '🤖', text: '通用智能体' },
   { icon: '📽️', text: '制作幻灯片' },
-  { icon: '📊', text: '数据分析' },
+  { icon: '📊', text: '数据分析' }, // 第四项
 ]
 
 const selectedIndex = ref(0)
+
+// 子组件引用
 const lessonPlanRef = ref(null)
 const generalAgentRef = ref(null)
 const slideMakerRef = ref(null)
+const dataAnalysisRef = ref(null) // 新增引用
 
 const selectItem = (index) => {
   if (selectedIndex.value === index) {
-    // 点击已选中的项：如果是教案，则重置播放动画
+    // 点击已选中的项：重置对应子组件的动画
     if (index === 0) {
       lessonPlanRef.value?.resetAndPlay()
     } else if (index === 1) {
       generalAgentRef.value?.resetAndPlay()
     } else if (index === 2) {
       slideMakerRef.value?.resetAndPlay()
+    } else if (index === 3) {
+      dataAnalysisRef.value?.resetAndPlay() // 调用数据分析组件的重置方法
     }
-    // 其他项可在此添加额外交互（如刷新占位内容）
   } else {
     selectedIndex.value = index
     // 切换后，子组件会自动挂载并播放（onMounted 已处理）
