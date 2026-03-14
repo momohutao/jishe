@@ -72,7 +72,7 @@
           </div>
         </div>
 
-        <!-- 成绩分布柱状图 -->
+        <!-- 成绩分布柱状图（分布直方图） -->
         <h4>📈 成绩分布（分数段人数）</h4>
         <div class="chart-container">
           <div class="bar-item" v-for="(item, index) in gradeDistribution" :key="index">
@@ -84,7 +84,20 @@
           </div>
         </div>
 
-        <!-- 最近五次作业平均分趋势 -->
+        <!-- 新增：学生等级占比饼状图 -->
+        <h4>🥧 学生等级占比</h4>
+        <div class="pie-container">
+          <div class="pie-chart" :style="{ background: pieConicGradient }"></div>
+          <div class="pie-legend">
+            <div v-for="(item, index) in gradeLevels" :key="index" class="legend-item">
+              <span class="legend-color" :style="{ backgroundColor: item.color }"></span>
+              <span class="legend-label">{{ item.label }}</span>
+              <span class="legend-value">{{ item.percentage }}% ({{ item.count }}人)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 最近五次作业平均分趋势（折线图） -->
         <h4>📉 近五次作业平均分趋势</h4>
         <div class="trend-container">
           <div class="trend-line">
@@ -129,13 +142,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, computed } from 'vue'
 
 // 模拟对话流程（老师与AI关于数据分析的交互）
 const conversationFlow = [
   {
     role: 'user',
-    content: '老师：最近班级的语文学习情况怎么样？能给我一些数据分析吗？',
+    content: '最近班级的语文学习情况怎么样？能给我一些数据分析吗？',
   },
   {
     role: 'ai',
@@ -206,6 +219,25 @@ const bottomStudents = ref([
   { name: '吴茜', score: 65 },
   { name: '郑爽', score: 67 },
 ])
+
+// 新增饼状图数据：学生等级占比
+const gradeLevels = ref([
+  { label: '优秀 (90分以上)', count: 12, percentage: 25, color: '#2ecc71' },
+  { label: '良好 (80-89分)', count: 18, percentage: 37.5, color: '#3498db' },
+  { label: '及格 (60-79分)', count: 16, percentage: 33.3, color: '#f39c12' },
+  { label: '不及格 (60分以下)', count: 2, percentage: 4.2, color: '#e74c3c' },
+])
+
+// 计算饼图的 conic-gradient 背景
+const pieConicGradient = computed(() => {
+  let cumulative = 0
+  const stops = gradeLevels.value.map((item) => {
+    const start = cumulative
+    cumulative += item.percentage
+    return `${item.color} ${start}% ${cumulative}%`
+  })
+  return `conic-gradient(${stops.join(', ')})`
+})
 
 const displayedMessages = ref([])
 const isTyping = ref(false)
@@ -600,6 +632,62 @@ defineExpose({ resetAndPlay })
   color: #2c3e50;
 }
 
+/* 饼状图容器 */
+.pie-container {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background-color: #f8fafc;
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid #eaeef2;
+  margin-bottom: 24px;
+}
+
+.pie-chart {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: conic-gradient(
+    #2ecc71 0% 25%,
+    #3498db 25% 62.5%,
+    #f39c12 62.5% 95.8%,
+    #e74c3c 95.8% 100%
+  );
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.pie-legend {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #4a5a6e;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.legend-label {
+  width: 110px;
+}
+
+.legend-value {
+  font-weight: 500;
+  color: #2c3e50;
+}
+
 /* 趋势图（模拟折线） */
 .trend-container {
   background-color: #f8fafc;
@@ -757,6 +845,23 @@ defineExpose({ resetAndPlay })
 
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .pie-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pie-chart {
+    align-self: center;
+  }
+
+  .legend-item {
+    flex-wrap: wrap;
+  }
+
+  .legend-label {
+    width: auto;
   }
 
   .student-lists {

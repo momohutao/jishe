@@ -15,7 +15,7 @@
               <div class="file-card">
                 <!-- 将图标换成 PPT 专用图标（幻灯片） -->
                 <span class="file-icon">📽️</span>
-                <span class="file-name">1沁园春长沙.pptx</span>
+                <span class="file-name">沁园春长沙.pptx</span>
                 <span class="file-size">(2.3 MB)</span>
                 <span class="download-icon" title="下载文件">⬇️</span>
               </div>
@@ -112,7 +112,7 @@ const conversationFlow = [
   {
     role: 'user',
     content:
-      '老师：我想制作一份关于毛泽东《沁园春·长沙》的语文教学PPT，需要涵盖词作原文、背景、意象分析、艺术特色和课堂练习，大概20多页。',
+      '我想制作一份关于毛泽东《沁园春·长沙》的语文教学PPT，需要涵盖词作原文、背景、意象分析、艺术特色和课堂练习，大概20多页。',
   },
   {
     role: 'ai',

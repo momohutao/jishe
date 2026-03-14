@@ -4,8 +4,8 @@
     <header class="navbar">
       <!-- 左侧 Logo 和项目名称（点击回到主页） -->
       <router-link to="/" class="logo">
-        <span class="logo-icon">🤖</span>
-        <span class="project-name">AI 助手</span>
+        <span class="logo-icon"><img src="./assets/images/logo.png" alt="" /></span>
+        <span class="project-name">ClassWeave 织课</span>
       </router-link>
 
       <!-- 右侧导航链接 -->
@@ -58,8 +58,9 @@ export default {
   color: inherit; /* 继承文字颜色 */
 }
 
-.logo-icon {
-  font-size: 1.8rem;
+.logo-icon img {
+  width: 40px;
+  height: 30px;
 }
 
 .project-name {
