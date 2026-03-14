@@ -40,12 +40,20 @@
       超越一键生成。与 AI 深度协同编辑，润色打磨出让你能从容分享给客户和同事的高品质成果。
     </div>
 
-    <button class="experience">立即体验 <span class="arrow">→</span></button>
+    <!-- 添加点击事件，跳转到登录页 -->
+    <button class="experience" @click="goToLogin">立即体验 <span class="arrow">→</span></button>
   </div>
 </template>
 
 <script setup>
-// 你的脚本逻辑（可选）
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+// 跳转到登录页
+const goToLogin = () => {
+  router.push('/login')
+}
 </script>
 
 <style scoped>
