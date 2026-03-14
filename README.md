@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Vue-test
 
 This template should help get you started developing with Vue 3 in Vite.
@@ -36,3 +37,7 @@ npm run dev
 ```sh
 npm run build
 ```
+=======
+# teach_chat_ppt-s-front-end
+电子科技大学服创项目《teach chat ppt》前端开发
+>>>>>>> 7e16fca78cafcde76e8f390508b70b71d3596916
