@@ -19,6 +19,12 @@
       <!-- 编写教案（索引0）使用子组件 LessonPlan -->
       <LessonPlan v-if="selectedIndex === 0" ref="lessonPlanRef" />
 
+      <!-- 通用智能体 -->
+      <GeneralAgent v-else-if="selectedIndex === 1" ref="generalAgentRef" />
+
+      <!-- 制作幻灯片 -->
+      <SlideMaker v-else-if="selectedIndex === 2" ref="slideMakerRef" />
+
       <!-- 其他导航项的占位提示 -->
       <div v-else class="content-placeholder">
         <p>✨ 其他功能开发中，敬请期待</p>
@@ -30,6 +36,8 @@
 <script setup>
 import { ref } from 'vue'
 import LessonPlan from '../activity/LessonPlan.vue' // 根据实际路径调整
+import GeneralAgent from '../activity/GeneralAgent.vue'
+import SlideMaker from '../activity/SlideMaker.vue'
 
 const items = [
   { icon: '📄', text: '编写教案' },
@@ -40,12 +48,18 @@ const items = [
 
 const selectedIndex = ref(0)
 const lessonPlanRef = ref(null)
+const generalAgentRef = ref(null)
+const slideMakerRef = ref(null)
 
 const selectItem = (index) => {
   if (selectedIndex.value === index) {
     // 点击已选中的项：如果是教案，则重置播放动画
     if (index === 0) {
       lessonPlanRef.value?.resetAndPlay()
+    } else if (index === 1) {
+      generalAgentRef.value?.resetAndPlay()
+    } else if (index === 2) {
+      slideMakerRef.value?.resetAndPlay()
     }
     // 其他项可在此添加额外交互（如刷新占位内容）
   } else {
