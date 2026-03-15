@@ -32,7 +32,8 @@
             <h4>开发者</h4>
             <div class="footer-links">
               <a href="#">联系我们</a>
-              <a href="#">意见反馈</a>
+              <!-- 将意见反馈改为 router-link -->
+              <router-link to="/react">意见反馈</router-link>
             </div>
           </div>
         </div>
@@ -56,6 +57,7 @@
 </script>
 
 <style scoped>
+/* 样式完全保持不变 */
 .bottom-bar {
   padding: 40px 0 20px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -63,25 +65,23 @@
 }
 
 .footer-container {
-  --column-gap: 40px; /* 栏目间距变量 */
+  --column-gap: 40px;
 
   max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 160px 20px; /* 左右内边距160px，使内容向中心靠拢 */
+  padding: 40px 160px 20px;
   background-color: #fafafa;
   border-radius: 24px;
   border-top: 1px solid #eaeaea;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
 }
 
-/* 主区域：左右两栏 */
 .footer-main {
   display: flex;
-  gap: 440px; /* 品牌与右侧间距固定，确保三列宽度足够 */
+  gap: 440px;
   margin-bottom: 40px;
 }
 
-/* 左侧品牌区域 */
 .brand-section {
   flex: 0 0 auto;
 }
@@ -93,7 +93,6 @@
   white-space: nowrap;
 }
 
-/* 右侧栏目区域：三列网格 */
 .columns-section {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -101,7 +100,6 @@
   flex: 1;
 }
 
-/* 列样式：所有内容居中对齐 */
 .footer-col {
   display: flex;
   flex-direction: column;
@@ -118,7 +116,6 @@ h4 {
   letter-spacing: 0.5px;
 }
 
-/* 链接列表：横向排列，允许换行 */
 .footer-links {
   display: flex;
   flex-direction: row;
@@ -128,7 +125,9 @@ h4 {
   align-items: center;
 }
 
-.footer-links a {
+.footer-links a,
+.footer-links .router-link {
+  /* router-link 默认渲染为 a，样式一致 */
   color: #666;
   text-decoration: none;
   font-size: 0.95rem;
@@ -136,17 +135,16 @@ h4 {
   white-space: nowrap;
 }
 
-.footer-links a:hover {
+.footer-links a:hover,
+.footer-links .router-link:hover {
   color: #000;
   text-decoration: underline;
 }
 
-/* 底部法律信息（分割线加长） */
 .footer-bottom {
   border-top: 1px solid #e0e0e0;
   padding-top: 20px;
   margin-top: 20px;
-  /* 分割线加长：左右各延伸20px，超出内容区域但仍在圆角内（圆角24px） */
   margin-left: -20px;
   margin-right: -20px;
   padding-left: 20px;
@@ -172,11 +170,10 @@ h4 {
   text-decoration: underline;
 }
 
-/* 响应式：中等屏幕适当减小内边距和间距 */
 @media (max-width: 900px) {
   .footer-container {
     --column-gap: 30px;
-    padding: 40px 80px 20px; /* 左右内边距减小 */
+    padding: 40px 80px 20px;
   }
 
   .footer-main {
@@ -196,7 +193,6 @@ h4 {
     grid-template-columns: repeat(3, 1fr);
   }
 
-  /* 分割线加长相应调整 */
   .footer-bottom {
     margin-left: -15px;
     margin-right: -15px;
@@ -205,7 +201,6 @@ h4 {
   }
 }
 
-/* 小于 600px 时右侧栏目改为两列 */
 @media (max-width: 600px) {
   .footer-container {
     --column-gap: 24px;
@@ -216,7 +211,6 @@ h4 {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  /* 分割线加长进一步减小 */
   .footer-bottom {
     margin-left: -10px;
     margin-right: -10px;
@@ -225,7 +219,6 @@ h4 {
   }
 }
 
-/* 小于 480px 时右侧栏目改为单列，分割线取消加长（保持与内容同宽） */
 @media (max-width: 480px) {
   .footer-container {
     padding: 40px 16px 20px;
