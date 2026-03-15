@@ -66,13 +66,18 @@ const goToLogin = () => {
   border-radius: 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
+
+/* 标题：梦幻紫罗兰渐变（与 left.vue 一致） */
 .default-title {
   font-size: 1.875rem;
   font-weight: 700;
-  color: #111827;
-  letter-spacing: -0.025em;
   margin: 0;
+  background: linear-gradient(135deg, #8b5cf6, #c084fc, #e9d5ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
+
 .default-content {
   color: #4b5563;
   line-height: 1.625;
@@ -80,13 +85,13 @@ const goToLogin = () => {
   margin: 0;
 }
 
-/* 按钮样式与 left.vue 统一：静止黑色背景，悬浮灰色背景 */
+/* 按钮样式与 left.vue 统一 */
 .default-button {
   align-self: flex-start;
   padding: 0.75rem 2rem;
   border: 1px solid #000000;
-  background-color: #000000; /* 纯黑背景 */
-  color: #ffffff; /* 白色文字 */
+  background-color: #000000;
+  color: #ffffff;
   border-radius: 9999px;
   font-weight: 500;
   transition:
@@ -95,9 +100,9 @@ const goToLogin = () => {
   cursor: pointer;
 }
 .default-button:hover {
-  background-color: #4a4a4a; /* 灰色背景 */
+  background-color: #4a4a4a;
   border-color: #595b5e;
-  color: #ffffff; /* 保持白色文字 */
+  color: #ffffff;
 }
 
 @media (min-width: 768px) {

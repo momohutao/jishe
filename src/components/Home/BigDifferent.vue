@@ -136,11 +136,13 @@ import Right from '../different/right.vue'
 }
 
 .custom-title {
-  font-size: 1.875rem; /* 30px */
+  font-size: 1.875rem;
   font-weight: 700;
-  color: #111827;
-  letter-spacing: -0.025em;
   margin: 0 0 0.5rem 0;
+  background: linear-gradient(135deg, #8b5cf6, #c084fc, #e9d5ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .custom-content {

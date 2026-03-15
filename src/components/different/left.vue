@@ -70,12 +70,15 @@ const goToLogin = () => {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
+/* 标题：梦幻紫罗兰渐变 */
 .default-title {
   font-size: 1.875rem;
   font-weight: 700;
-  color: #111827;
-  letter-spacing: -0.025em;
   margin: 0;
+  background: linear-gradient(135deg, #8b5cf6, #c084fc, #e9d5ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .default-content {
