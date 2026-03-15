@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <!-- 导航栏 -->
+    <!-- 导航栏：固定顶部 -->
     <header class="navbar">
       <!-- 左侧 Logo 和项目名称（点击回到主页） -->
       <router-link to="/" class="logo">
@@ -16,7 +16,7 @@
       </nav>
     </header>
 
-    <!-- 路由组件渲染区域 -->
+    <!-- 路由组件渲染区域，添加上边距避免被固定导航栏遮挡 -->
     <main>
       <router-view />
     </main>
@@ -29,8 +29,17 @@ export default {
 }
 </script>
 
+<style>
+/* 全局样式：确保所有元素盒模型正确 */
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  overflow-x: hidden; /* 避免意外水平滚动条 */
+}
+</style>
 <style scoped>
-/* 整体布局 */
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -38,15 +47,21 @@ export default {
   color: #2c3e50;
 }
 
-/* 导航栏样式 */
+/* 导航栏样式：固定顶部 */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 2rem;
   height: 60px;
-  background-color: #f8f9fa;
+  background-color: rgba(248, 249, 250, 0.95);
   border-bottom: 1px solid #e9ecef;
+  /* 固定定位 */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
 }
 
 /* Logo 区域（作为链接） */
@@ -54,8 +69,8 @@ export default {
   display: flex;
   align-items: center;
   gap: 8px;
-  text-decoration: none; /* 去除下划线 */
-  color: inherit; /* 继承文字颜色 */
+  text-decoration: none;
+  color: inherit;
 }
 
 .logo-icon img {
@@ -92,8 +107,9 @@ export default {
   border-bottom: 2px solid #42b983;
 }
 
-/* 主内容区域 */
+/* 主内容区域：添加上边距，防止被固定导航栏遮挡 */
 main {
-  padding: 20px;
+  margin-top: 60px; /* 与导航栏高度一致 */
+  padding: 20px; /* 内部组件已有内边距，可根据需要调整或移除 */
 }
 </style>
