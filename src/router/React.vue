@@ -3,8 +3,8 @@
     <div class="feedback-card">
       <!-- 头部 -->
       <header class="header">
-        <h2 class="title">分享你的想法</h2>
-        <p class="subtitle">你的反馈将帮助我们打造更出色的产品</p>
+        <h2 class="title">分享您的想法</h2>
+        <p class="subtitle">您的反馈将帮助我们打造更出色的产品</p>
       </header>
 
       <!-- 反馈类型选择 -->
@@ -170,7 +170,7 @@
             </svg>
           </div>
           <h3 class="modal-title">提交成功</h3>
-          <p class="modal-message">感谢你的宝贵意见，我们会尽快处理并通过邮件回复你。</p>
+          <p class="modal-message">感谢您的宝贵意见，我们会尽快处理并通过邮件回复您。</p>
           <button class="modal-btn" @click="closeModal">确定</button>
         </div>
       </div>
