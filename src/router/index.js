@@ -28,6 +28,11 @@ const router = createRouter({
       name: 'React',
       component: () => import('../router/React.vue'),
     },
+    {
+      path: '/question',
+      name: 'Question',
+      component: () => import('@/components/questionPage.vue'), // 确保路径正确
+    },
   ],
   // 添加滚动行为：每次切换路由后滚动到页面顶部
   scrollBehavior(to, from, savedPosition) {

@@ -58,18 +58,31 @@
     <!-- 提示：未注册手机号将自动注册 -->
     <div class="form-tip">未注册的手机号将自动注册账号</div>
 
+    <!-- 登录错误提示 -->
+    <div class="error-message" v-if="loginError">{{ loginError }}</div>
+
     <!-- 登录按钮 -->
     <button class="login-btn" @click="handleLogin" :disabled="loginLoading">
       <span v-if="loginLoading" class="loading-spinner"></span>
       {{ loginLoading ? '登录中...' : '登录' }}
     </button>
+
+    <!-- 优雅的 Toast 提示 -->
+    <Transition name="fade">
+      <div v-if="showSmsToast" class="toast-message">
+        {{ toastMessage }}
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 import { useCaptcha } from '@/composables/useCaptcha'
 import { useCountdown } from '@/composables/useCountdown'
+
+const router = useRouter()
 
 // 表单数据
 const phone = ref('')
@@ -80,6 +93,7 @@ const smsCode = ref('')
 const phoneError = ref('')
 const captchaError = ref('')
 const smsCodeError = ref('')
+const loginError = ref('')
 
 // 登录 loading
 const loginLoading = ref(false)
@@ -93,7 +107,23 @@ const captchaInputRef = ref(null)
 const smsCodeInput = ref(null)
 
 // 图形验证码
-const { captchaCode, captchaCanvas, initCaptcha, refreshCaptcha, drawCaptcha } = useCaptcha()
+const { captchaCode, captchaCanvas, initCaptcha, refreshCaptcha } = useCaptcha()
+
+// Toast 控制
+const showSmsToast = ref(false)
+const toastMessage = ref('')
+let toastTimer = null
+
+// 显示 Toast 消息（自动消失）
+function showToast(message, duration = 2000) {
+  if (toastTimer) clearTimeout(toastTimer)
+  toastMessage.value = message
+  showSmsToast.value = true
+  toastTimer = setTimeout(() => {
+    showSmsToast.value = false
+    toastTimer = null
+  }, duration)
+}
 
 // 手机号合法性检查
 function validatePhone() {
@@ -133,8 +163,8 @@ async function handleGetSmsCode() {
     return
   }
 
-  // 模拟发送验证码，成功后开始倒计时
-  alert('验证码已发送至手机（模拟）')
+  // 模拟发送验证码，成功后开始倒计时并显示优雅提示
+  showToast('验证码已发送至手机')
   startSmsCountdown()
 }
 
@@ -161,10 +191,15 @@ async function handleLogin() {
   }
 
   loginLoading.value = true
-  // 模拟登录请求
+  loginError.value = ''
+
   setTimeout(() => {
-    alert('手机号登录成功（模拟）')
-    loginLoading.value = false
+    if (phone.value === '15012341234' && smsCode.value === '112233') {
+      router.push('/question')
+    } else {
+      loginError.value = '手机号或验证码错误'
+      loginLoading.value = false
+    }
   }, 1000)
 }
 
@@ -187,6 +222,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  position: relative; /* 为 Toast 定位提供参考 */
 }
 
 .form-item {
@@ -365,5 +401,34 @@ onMounted(() => {
 .login-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Toast 样式 - 固定在页面顶部 */
+.toast-message {
+  position: fixed;
+  top: 80px; /* 导航栏下方 */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #ffffff;
+  color: #333;
+  padding: 14px 24px;
+  border-radius: 40px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 16px;
+  font-weight: 500;
+  z-index: 1001; /* 高于导航栏 */
+  white-space: nowrap;
+  border: 1px solid #f0f0f0;
+  pointer-events: none; /* 防止遮挡点击 */
+}
+
+/* 淡入淡出过渡 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
