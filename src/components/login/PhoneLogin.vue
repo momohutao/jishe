@@ -195,7 +195,8 @@ async function handleLogin() {
 
   setTimeout(() => {
     if (phone.value === '15012341234' && smsCode.value === '112233') {
-      router.push('/question')
+     
+      router.push('/chat')
     } else {
       loginError.value = '手机号或验证码错误'
       loginLoading.value = false

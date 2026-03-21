@@ -1,40 +1,66 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+// ================== A同学写的页面 ==================
+import ChatView from '../views/ChatView.vue'
+import KnowledgeBase from '../views/KnowledgeBase.vue'
+import TemplateLibrary from '../views/TemplateLibrary.vue'
+
+// ================== B同学写的页面 ==================
+import Login from '../views/Login.vue'
+import Home from '../views/Home.vue'
+import AIDoc from '../views/AIDoc.vue'
+import AISlide from '../views/AISlide.vue'
+import ReactPage from '../views/React.vue'
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
+      path: '/login',
+      name: 'login',
+      component: Login
+    },
+    // ✅ 正确重定向：访问 / 跳转到 /intro
+    {
       path: '/',
-      name: 'Home',
-      component: () => import('../router/Home.vue'), // 假设有一个 Home 组件
+      redirect: '/intro'
     },
     {
-      path: '/ai-slide',
-      name: 'AISlide',
-      component: () => import('../router/AISlide.vue'),
+      path: '/intro',
+      name: 'intro',
+      component: Home
+    },
+    {
+      path: '/chat',
+      name: 'chat',
+      component: ChatView
+    },
+    {
+      path: '/knowledge',
+      name: 'knowledge',
+      component: KnowledgeBase
+    },
+    {
+      path: '/templates',
+      name: 'templates',
+      component: TemplateLibrary
     },
     {
       path: '/ai-doc',
-      name: 'AIDoc',
-      component: () => import('../router/AIDoc.vue'),
+      name: 'aidoc',
+      component: AIDoc
     },
     {
-      path: '/login',
-      name: 'Login',
-      component: () => import('../router/Login.vue'),
+      path: '/ai-slide',
+      name: 'aislide',
+      component: AISlide
     },
     {
       path: '/react',
-      name: 'React',
-      component: () => import('../router/React.vue'),
-    },
-    {
-      path: '/question',
-      name: 'Question',
-      component: () => import('@/components/questionPage.vue'), // 确保路径正确
-    },
+      name: 'react',
+      component: ReactPage
+    }
   ],
-  // 添加滚动行为：每次切换路由后滚动到页面顶部
   scrollBehavior(to, from, savedPosition) {
     // 如果存在 savedPosition（例如浏览器前进/后退），则恢复到该位置
     if (savedPosition) {
