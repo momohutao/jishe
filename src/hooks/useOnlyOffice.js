@@ -23,8 +23,8 @@ export function useOnlyOffice(editorElementId) {
     const buildEditorConfig = (editorData) => {
         const baseConfig = editorData.editorConfig || {};
         const baseEvents = baseConfig.events || {};
-const innerEditorConfig = baseConfig.editorConfig || {};
-      return {
+        const innerEditorConfig = baseConfig.editorConfig || {};
+        return {
             ...baseConfig,
             width: "100%",
             height: "100%",
@@ -41,23 +41,32 @@ const innerEditorConfig = baseConfig.editorConfig || {};
             },
             editorConfig: {
                 ...innerEditorConfig,
-                mode: editorData.editorConfig?.mode || "edit", 
+                mode: editorData.editorConfig?.mode || "edit",
                 lang: "zh-CN",
                 customization: {
                     ...(baseConfig.customization || {}),
                     autosave: true,
                     forcesave: true,
                 },
+                plugins: {
+                    autostart: [
+                        // 这里不需要自动启动，留空即可
+                    ],
+                    pluginsData: [
+                        // 告诉 ONLYOFFICE 你的插件部署在哪里
+                        "https://你的服务器/onlyoffice-plugins/html-embedder/config.json"
+                    ]
+                }
             },
             events: {
                 ...baseEvents,
                 // 2. 核心回调：异步创建完成后，ONLYOFFICE 会触发此事件
                 onDownloadAs: (event) => {
                     console.log('2. ONLYOFFICE 异步打包完成，触发回调！', event);
-                    
+
                     // 获取生成的文件链接
                     const downloadUrl = event?.data?.url;
-                    
+
                     if (downloadUrl) {
                         console.log(`3. 正在下载最新编辑的文件: ${downloadUrl}`);
                         // 使用 _blank 打开避免 WebAssembly 运行环境受干扰
@@ -101,7 +110,7 @@ const innerEditorConfig = baseConfig.editorConfig || {};
                         baseEvents.onDocumentStateChange(event);
                     }
                 },
-                
+
             },
         };
     };
