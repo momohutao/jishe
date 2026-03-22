@@ -246,7 +246,7 @@
 
     <!-- 右侧：PPT 预览组件 -->
     <div class="preview-panel" v-if="currentPreviewPayload">
-      <PptPreview :document-config="currentPreviewPayload" />
+      <PptPreview :document-config="currentPreviewPayload" @close="closePreview"/>
     </div>
   </div>
 </template>
@@ -535,6 +535,9 @@ const handleLoadHistory = (historyItem: any) => {
   if (historyItem.messagesData) {
     messages.value = JSON.parse(JSON.stringify(historyItem.messagesData))
   }
+}
+const closePreview = () => {
+  currentPreviewPayload.value = null;
 }
 const startNewChat = () => {
   // 1. 判断当前对话是否值得保存 (即：除了 AI 的第一句问候，用户有没有发过消息)
