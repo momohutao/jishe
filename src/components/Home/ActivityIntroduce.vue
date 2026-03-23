@@ -9,26 +9,17 @@
         :class="{ selected: selectedIndex === index }"
         @click="selectItem(index)"
       >
-        <span class="icon">{{ item.icon }}</span>
+        <i :class="['iconfont', item.icon]" :style="{ color: item.color }"></i>
         {{ item.text }}
       </div>
     </div>
 
     <!-- 内容区域：根据选中项展示不同内容 -->
     <div class="content-area">
-      <!-- 编写教案（索引0） -->
       <LessonPlan v-if="selectedIndex === 0" ref="lessonPlanRef" />
-
-      <!-- 通用智能体（索引1） -->
       <GeneralAgent v-else-if="selectedIndex === 1" ref="generalAgentRef" />
-
-      <!-- 制作幻灯片（索引2） -->
       <SlideMaker v-else-if="selectedIndex === 2" ref="slideMakerRef" />
-
-      <!-- 数据分析（索引3） -->
       <DataAnalysis v-else-if="selectedIndex === 3" ref="dataAnalysisRef" />
-
-      <!-- 其他导航项的占位提示（目前仅4项，所以不会进入） -->
       <div v-else class="content-placeholder">
         <p>✨ 其他功能开发中，敬请期待</p>
       </div>
@@ -41,38 +32,30 @@ import { ref } from 'vue'
 import LessonPlan from '../activity/LessonPlan.vue'
 import GeneralAgent from '../activity/GeneralAgent.vue'
 import SlideMaker from '../activity/SlideMaker.vue'
-import DataAnalysis from '../activity/DataAnalysis.vue' // 新增导入
+import DataAnalysis from '../activity/DataAnalysis.vue'
 
 const items = [
-  { icon: '📄', text: '编写教案' },
-  { icon: '🤖', text: '通用智能体' },
-  { icon: '📽️', text: '制作幻灯片' },
-  { icon: '📊', text: '数据分析' }, // 第四项
+  { icon: 'icon-wendang', text: '编写教案', color: '#3b82f6' }, // 蓝色
+  { icon: 'icon-zhinengti', text: '通用智能体', color: '#1e40af' }, // 深蓝色
+  { icon: 'icon-huandengpianicon', text: '制作幻灯片', color: '#f97316' }, // 橙色
+  { icon: 'icon-tubiao', text: '数据分析', color: '#22c55e' }, // 绿色
 ]
 
 const selectedIndex = ref(0)
 
-// 子组件引用
 const lessonPlanRef = ref(null)
 const generalAgentRef = ref(null)
 const slideMakerRef = ref(null)
-const dataAnalysisRef = ref(null) // 新增引用
+const dataAnalysisRef = ref(null)
 
 const selectItem = (index) => {
   if (selectedIndex.value === index) {
-    // 点击已选中的项：重置对应子组件的动画
-    if (index === 0) {
-      lessonPlanRef.value?.resetAndPlay()
-    } else if (index === 1) {
-      generalAgentRef.value?.resetAndPlay()
-    } else if (index === 2) {
-      slideMakerRef.value?.resetAndPlay()
-    } else if (index === 3) {
-      dataAnalysisRef.value?.resetAndPlay() // 调用数据分析组件的重置方法
-    }
+    if (index === 0) lessonPlanRef.value?.resetAndPlay()
+    else if (index === 1) generalAgentRef.value?.resetAndPlay()
+    else if (index === 2) slideMakerRef.value?.resetAndPlay()
+    else if (index === 3) dataAnalysisRef.value?.resetAndPlay()
   } else {
     selectedIndex.value = index
-    // 切换后，子组件会自动挂载并播放（onMounted 已处理）
   }
 }
 </script>
@@ -130,7 +113,8 @@ const selectItem = (index) => {
   border-color: #eaeef2;
 }
 
-.icon {
+/* 图标样式 */
+.nav-item i {
   font-size: 24px;
   line-height: 1;
 }
@@ -140,7 +124,6 @@ const selectItem = (index) => {
   margin: 0 auto;
 }
 
-/* 其他功能占位样式 */
 .content-placeholder {
   text-align: center;
   padding: 80px 20px;
@@ -151,7 +134,6 @@ const selectItem = (index) => {
   font-size: 18px;
 }
 
-/* 响应式导航调整 */
 @media (max-width: 768px) {
   .nav-grid {
     gap: 16px;
@@ -161,7 +143,7 @@ const selectItem = (index) => {
     padding: 12px 16px;
     font-size: 16px;
   }
-  .icon {
+  .nav-item i {
     font-size: 20px;
   }
 }

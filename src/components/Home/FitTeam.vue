@@ -1,25 +1,14 @@
-<script setup>
-import { useRouter } from 'vue-router'
-
-const router = useRouter()
-const goToLogin = () => {
-  router.push('/login')
-}
-</script>
-
 <template>
   <div class="fit-team">
     <div class="big">赋能每一支团队，成就每一位创作者</div>
     <div class="small">无论独立探索，还是百人协作，AI 助你效率跃升 3 倍，专注真正重要的事。</div>
 
-    <!-- 按钮放在卡片上方 -->
     <button class="try" @click="goToLogin">限时免费试用</button>
 
-    <!-- 卡片网格（零间距，边框紧密贴合） -->
     <div class="card-grid">
-      <!-- 卡片 1：智能教案生成（向左倾斜） -->
+      <!-- 卡片 1：智能教案生成 -->
       <div class="feature-card card-1">
-        <div class="card-icon">📚</div>
+        <i class="card-icon iconfont icon-wendang" style="color: #3b82f6"></i>
         <h4 class="card-title">智能教案生成</h4>
         <p class="card-desc">输入主题，AI 自动生成结构化教案，支持个性化调整，节省备课时间。</p>
         <ul class="card-details">
@@ -28,9 +17,9 @@ const goToLogin = () => {
         </ul>
       </div>
 
-      <!-- 卡片 2：AI PPT 制作（向右倾斜） -->
+      <!-- 卡片 2：AI PPT 制作 -->
       <div class="feature-card card-2">
-        <div class="card-icon">📽️</div>
+        <i class="card-icon iconfont icon-huandengpianicon" style="color: #f97316"></i>
         <h4 class="card-title">AI PPT 制作</h4>
         <p class="card-desc">从大纲到精美演示文稿，一键生成，内置教育主题模板，让课堂更生动。</p>
         <div class="card-preview">
@@ -38,18 +27,18 @@ const goToLogin = () => {
         </div>
       </div>
 
-      <!-- 卡片 3：课堂数据分析（向左倾斜） -->
+      <!-- 卡片 3：课堂数据分析 -->
       <div class="feature-card card-3">
-        <div class="card-icon">📊</div>
+        <i class="card-icon iconfont icon-tubiao" style="color: #22c55e"></i>
         <h4 class="card-title">课堂数据分析</h4>
         <p class="card-desc">自动统计学生表现，生成可视化图表，洞察教学效果，优化课程设计。</p>
         <div class="card-slides">17 Slides <span>17张幻灯片</span></div>
         <div class="card-preview-card"></div>
       </div>
 
-      <!-- 卡片 4：通用智能体（现在向右倾斜） -->
+      <!-- 卡片 4：通用智能体 -->
       <div class="feature-card card-4">
-        <div class="card-icon">🤖</div>
+        <i class="card-icon iconfont icon-zhinengti" style="color: #1e40af"></i>
         <h4 class="card-title">通用智能体</h4>
         <p class="card-desc">7×24小时智能助手，解答疑问、生成创意、处理任务，随时响应师生需求。</p>
         <div class="card-chart">
@@ -61,6 +50,15 @@ const goToLogin = () => {
     </div>
   </div>
 </template>
+
+<script setup>
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const goToLogin = () => {
+  router.push('/login')
+}
+</script>
 
 <style scoped>
 .fit-team {
@@ -86,7 +84,6 @@ const goToLogin = () => {
   max-width: 800px;
 }
 
-/* 按钮样式 */
 .fit-team .try {
   display: block;
   margin: 30px auto 80px;
@@ -106,7 +103,6 @@ const goToLogin = () => {
   transform: translateY(-2px);
 }
 
-/* 卡片网格布局：零间距 */
 .card-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -116,7 +112,6 @@ const goToLogin = () => {
   padding: 0 20px;
 }
 
-/* 卡片基础样式 */
 .feature-card {
   background-color: #ffffff;
   border-radius: 20px;
@@ -134,18 +129,16 @@ const goToLogin = () => {
   z-index: 1;
 }
 
-/* 静态倾斜角度 */
 .card-1,
 .card-3 {
-  rotate: -1deg; /* 向左倾斜 */
+  rotate: -1deg;
 }
 
 .card-2,
 .card-4 {
-  rotate: 1deg; /* 向右倾斜 */
+  rotate: 1deg;
 }
 
-/* 卡片 hover 效果：左倾卡片 */
 .card-1:hover,
 .card-3:hover {
   transform: rotate(-4deg) translateY(-30px) scale(1.08);
@@ -154,7 +147,6 @@ const goToLogin = () => {
   z-index: 20;
 }
 
-/* 卡片 hover 效果：右倾卡片 */
 .card-2:hover,
 .card-4:hover {
   transform: rotate(4deg) translateY(-30px) scale(1.08);
@@ -163,14 +155,12 @@ const goToLogin = () => {
   z-index: 20;
 }
 
-/* 卡片图标 */
 .card-icon {
   font-size: 36px;
   margin-bottom: 20px;
   line-height: 1;
 }
 
-/* 卡片标题 */
 .card-title {
   font-size: 1.4rem;
   font-weight: 600;
@@ -179,7 +169,6 @@ const goToLogin = () => {
   line-height: 1.3;
 }
 
-/* 卡片描述 */
 .card-desc {
   color: #666;
   font-size: 1rem;
@@ -188,7 +177,6 @@ const goToLogin = () => {
   flex: 1;
 }
 
-/* 卡片详情列表 */
 .card-details {
   list-style: none;
   padding: 0;
@@ -211,7 +199,6 @@ const goToLogin = () => {
   font-size: 14px;
 }
 
-/* 预览图占位 */
 .card-preview {
   width: 100%;
   height: 80px;
@@ -227,7 +214,6 @@ const goToLogin = () => {
   opacity: 0.8;
 }
 
-/* 幻灯片数量 */
 .card-slides {
   color: #777;
   font-size: 0.9rem;
@@ -239,7 +225,6 @@ const goToLogin = () => {
   color: #999;
 }
 
-/* 预览卡片占位 */
 .card-preview-card {
   width: 100%;
   height: 60px;
@@ -248,7 +233,6 @@ const goToLogin = () => {
   margin-top: auto;
 }
 
-/* 图表占位 */
 .card-chart {
   display: flex;
   gap: 6px;
@@ -278,13 +262,11 @@ const goToLogin = () => {
   background-color: #333;
 }
 
-/* 响应式：中屏两列 */
 @media (max-width: 1200px) {
   .card-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 1px;
   }
-
   .card-1,
   .card-3 {
     rotate: -0.5deg;
@@ -293,7 +275,6 @@ const goToLogin = () => {
   .card-4 {
     rotate: 0.5deg;
   }
-
   .card-1:hover,
   .card-3:hover {
     transform: rotate(-3deg) translateY(-25px) scale(1.06);
@@ -304,32 +285,26 @@ const goToLogin = () => {
   }
 }
 
-/* 移动端：取消倾斜，单列布局 */
 @media (max-width: 600px) {
   .card-grid {
     grid-template-columns: 1fr;
     gap: 8px;
   }
-
   .fit-team .big {
     font-size: 36px;
   }
-
   .fit-team .small {
     font-size: 18px;
   }
-
   .fit-team .try {
     margin: 30px auto 40px;
   }
-
   .card-1,
   .card-2,
   .card-3,
   .card-4 {
     rotate: 0deg;
   }
-
   .card-1:hover,
   .card-2:hover,
   .card-3:hover,
@@ -338,7 +313,6 @@ const goToLogin = () => {
     box-shadow: 0 25px 40px rgba(0, 0, 0, 0.1);
     z-index: 20;
   }
-
   .feature-card {
     padding: 32px 20px;
   }

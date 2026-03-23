@@ -12,18 +12,18 @@
             :class="msg.role"
             :style="{ animationDelay: `${idx * 0.1}s` }"
           >
-            <div class="avatar">{{ msg.role === 'user' ? '👤' : '🤖' }}</div>
+            <!-- 用户头像保持原样 -->
+            <div class="avatar" v-if="msg.role === 'user'">👤</div>
+            <!-- AI 头像使用 ThinkingLogo 组件，静态显示（思考完成态） -->
+            <div class="avatar ai-avatar" v-else>
+              <ThinkingLogo :is-thinking="false" />
+            </div>
             <div class="bubble">{{ msg.content }}</div>
           </div>
 
-          <!-- 正在输入指示器 -->
-          <div v-if="isTyping" class="message ai typing-indicator">
-            <div class="avatar">🤖</div>
-            <div class="bubble">
-              <span class="dot"></span>
-              <span class="dot"></span>
-              <span class="dot"></span>
-            </div>
+          <!-- 思考指示器：完全使用 ThinkingLogo 组件的思考态 -->
+          <div v-if="isTyping" class="thinking-message">
+            <ThinkingLogo :is-thinking="true" />
           </div>
 
           <div ref="messagesEnd" class="scroll-anchor"></div>
@@ -143,6 +143,7 @@
 
 <script setup>
 import { ref, onMounted, nextTick, computed } from 'vue'
+import ThinkingLogo from '../ThinkingLogo.vue' // 请根据实际路径调整
 
 // 模拟对话流程（老师与AI关于数据分析的交互）
 const conversationFlow = [
@@ -371,6 +372,7 @@ defineExpose({ resetAndPlay })
   flex-direction: row-reverse;
 }
 
+/* 普通头像样式（用户） */
 .avatar {
   width: 36px;
   height: 36px;
@@ -384,12 +386,18 @@ defineExpose({ resetAndPlay })
   flex-shrink: 0;
 }
 
-.message.user .avatar {
-  background-color: #e1f5fe;
+/* AI 头像专用样式：去除背景和阴影，让 ThinkingLogo 组件完整展示 */
+.message.ai .avatar.ai-avatar {
+  width: auto;
+  height: auto;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  margin-right: 8px;
 }
 
-.message.ai .avatar {
-  background-color: #f3e5f5;
+.message.user .avatar {
+  background-color: #e1f5fe;
 }
 
 .bubble {
@@ -414,41 +422,12 @@ defineExpose({ resetAndPlay })
   border-bottom-left-radius: 4px;
 }
 
-.typing-indicator {
-  opacity: 1 !important;
-  animation: none !important;
-}
-
-.typing-indicator .bubble {
+/* 思考指示器：完全使用 ThinkingLogo 组件思考态，无需额外气泡 */
+.thinking-message {
   display: flex;
-  gap: 4px;
-  padding: 16px 20px;
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-  background-color: #90a4ae;
-  border-radius: 50%;
-  animation: bounce 1.4s infinite ease-in-out both;
-}
-
-.dot:nth-child(1) {
-  animation-delay: -0.32s;
-}
-.dot:nth-child(2) {
-  animation-delay: -0.16s;
-}
-
-@keyframes bounce {
-  0%,
-  80%,
-  100% {
-    transform: scale(0);
-  }
-  40% {
-    transform: scale(1);
-  }
+  align-items: center;
+  justify-content: flex-start;
+  margin: 8px 0 8px 12px;
 }
 
 .scroll-anchor {

@@ -19,7 +19,7 @@ const goToLogin = () => {
 
     <hr class="my-divider" />
     <div class="ready">准备好全自动内容创作了吗？</div>
-    <div class="samll">加入数千专业人士的行列，将 AnyGen Docs 作为日常 AI 写作工具。</div>
+    <div class="samll">加入数千专业人士的行列，将ClassWeave织课作为日常 AI 写作工具。</div>
     <div class="btn">
       <!-- 绑定点击事件 -->
       <button @click="goToLogin">立即免费试用</button>
