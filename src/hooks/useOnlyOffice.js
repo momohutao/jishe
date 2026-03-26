@@ -54,7 +54,7 @@ export function useOnlyOffice(editorElementId) {
                     ],
                     pluginsData: [
                         // 告诉 ONLYOFFICE 你的插件部署在哪里
-                        "https://你的服务器/onlyoffice-plugins/html-embedder/config.json"
+                       "http://localhost:5173/plugins/html-embedder/config.json"
                     ]
                 }
             },

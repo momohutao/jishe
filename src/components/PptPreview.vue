@@ -49,7 +49,6 @@
       <li class="menu__item" @click="exitFullscreen" title="退出全屏">⏹</li>
       <li class="menu__item" @click="reloadPreview" title="重新加载">↺</li>
       <li class="menu__item" @click="openDownload" title="下载文件">↓</li>
-      <li class="menu__item" @click="insertHtmlToSlide('https://你们的域名/ai-generated.html')" title="插入HTML网页">+</li>
       
       <li
         class="menu__item dh-btn"
@@ -184,35 +183,7 @@ const isSpeaking = ref(false);
 const currentSpeechText = ref("");
 let slideIndex = 1;
 
-const insertHtmlToSlide = (htmlUrl) => {
-  const editor = getEditor(); // 从你的 useOnlyOffice hook 里获取到 docEditor 实例
-  if (!editor) return;
-
-  // 这是我们刚刚写的那个插件的唯一 ID
-  const pluginGuid = "asc.{11111111-2222-3333-4444-555555555555}";
-  
-  // 必须提供一张占位图（比如一个带“点击播放”图标的图片），单位是毫米(mm)转换为像素计算
-  const placeholderImageUrl = "https://你服务器的地址/images/html-placeholder.png";
-  
-  // 要传递给插件的数据（把 url 存进去）
-  const oleData = JSON.stringify({ url: htmlUrl });
-
-  // 这里的宽高是插入到 PPT 里的默认形状大小（单位：毫米 mm）
-  const width = 150; 
-  const height = 100;
-
-  // 使用 ONLYOFFICE 的底层 API：向当前幻灯片插入一个 OLE 对象
-  editor.applyMethod("AddOleObject", [{
-    id: pluginGuid,
-    data: oleData,            // 存入真实网页的 URL
-    objectId: "html_embed_" + Date.now(),
-    imageSrc: placeholderImageUrl, // PPT 上的占位图
-    width: width,
-    height: height,
-    widthPix: width * 3.77,   // 内部计算像素换算，大致即可
-    heightPix: height * 3.77
-  }]);
-};
+ 
 
 function speak(text: string) {
   if (!("speechSynthesis" in window)) {
