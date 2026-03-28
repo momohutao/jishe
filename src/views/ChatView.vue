@@ -654,7 +654,7 @@ const startNewChat = () => {
 }
 
 .message-ai .avatar {
-  background-color: #1677ff;
+  background-color: #FFB800;
   margin-right: 16px;
 }
 
@@ -687,7 +687,7 @@ const startNewChat = () => {
 
 /* =========== 用户消息(多模态附件)展示 =========== */
 .user-content-wrapper {
-  background-color: #eff3fd;
+  background-color: #dfedd6 ;
   border-radius: 12px 2px 12px 12px;
   padding: 12px;
   color: #333;
@@ -807,7 +807,7 @@ const startNewChat = () => {
 }
 
 .file-card:hover {
-  border-color: #1677ff;
+  border-color:  #FFB800;
 }
 
 .file-cover {
@@ -901,7 +901,7 @@ const startNewChat = () => {
 }
 
 .input-wrapper:focus-within {
-  border-color: #1677ff;
+  border-color: #FFB800;
   background: #fff;
   box-shadow: 0 4px 16px rgba(22, 119, 255, 0.05);
 }
@@ -924,9 +924,9 @@ const startNewChat = () => {
 .att-tag {
   display: inline-flex;
   align-items: center;
-  background: #e6f7ff;
-  border: 1px solid #91caff;
-  color: #1677ff;
+background: #FFF7D6;
+  border: 1px solid #FFB800;
+  color: #CC8800;
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 12px;
@@ -935,7 +935,7 @@ const startNewChat = () => {
 .remove-att {
   background: transparent;
   border: none;
-  color: #1677ff;
+  color: #CC8800;
   margin-left: 6px;
   cursor: pointer;
   font-weight: bold;
@@ -1036,12 +1036,12 @@ const startNewChat = () => {
 
 .dropdown-item:hover {
   background: #f5f5f5;
-  color: #1677ff;
+   color: #FFB800;
 }
 
 /* 麦克风录音动画 */
 .mic-btn.recording-active {
-  color: #ff4d4f;
+  color:  #FFB800;
   animation: pulse 1.5s infinite;
 }
 
@@ -1064,7 +1064,7 @@ const startNewChat = () => {
 
 .send-btn {
   padding: 8px 24px;
-  background-color: #1677ff;
+  background-color:  #a2bb7a;
   color: white;
   border: none;
   border-radius: 8px;
@@ -1079,7 +1079,7 @@ const startNewChat = () => {
 }
 
 .send-btn:hover:not(:disabled) {
-  background-color: #4096ff;
+  background-color: #9ab534;
 }
 
 .icon-img {

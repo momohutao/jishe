@@ -129,7 +129,7 @@ const handleLogout = () => {
 .sidebar-container {
   width: 280px;
   background-color: #ffffff;
-  border-right: 1px solid #f0f0f0;
+  border-right: 1px solid #f5f5f0;
   display: flex;
   flex-direction: column;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -155,7 +155,7 @@ const handleLogout = () => {
   gap: 10px;
   font-weight: bold;
   font-size: 18px;
-  color: #1677ff;
+ 
 }
 
 .sidebar-content {
@@ -213,7 +213,7 @@ const handleLogout = () => {
 /* 右侧箭头提示（默认隐藏，悬浮时飞入） */
 .enter-arrow {
   font-size: 13px;
-  color: #1677ff;
+  color: #a2bb7a;
   opacity: 0;
   transform: translateX(-10px);
   transition: all 0.3s ease;
@@ -221,14 +221,14 @@ const handleLogout = () => {
 
 /* =========== 核心优化：Hover 动态交互效果 =========== */
 
-/* 1. 悬浮时整行背景变浅蓝 */
+ 
 .interactive-title:hover {
-  background-color: #f0f5ff;
+  background-color:   #fff9cc; 
 }
 
-/* 2. 悬浮时：文字变大 + 变蓝 */
+ 
 .interactive-title:hover .title-text {
-  color: #1677ff;
+  color: #a2bb7a;
   transform: scale(1.08);
   /* 文字放大 1.08倍 */
 }
@@ -236,14 +236,13 @@ const handleLogout = () => {
 /* 3. 悬浮时：图片放大 + 变蓝 */
 .interactive-title:hover .icon-img {
   transform: scale(1.15);
-  /* 图片稍微放大 */
-  /* CSS 魔法滤镜：将原始图标色彩转换为主题蓝色 (#1677ff) */
+ 
 }
 .icon-hover {
   display: none; /* 默认状态隐藏蓝色图标 */
 }
 .interactive-title:hover .icon-default {
-  display: none; /* 悬浮时隐藏黑色图标 */
+  display: none; 
 }
 
 .interactive-title:hover .icon-hover {
@@ -270,8 +269,8 @@ const handleLogout = () => {
 }
 
 .list-items .item:hover {
-  background-color: #f5f7fa;
-  color: #1677ff;
+  background-color: #fff9cc; /* 原为 #f5f7fa，现改为浅黄背景 */
+  color: #a2bb7a; 
 }
 
 .sidebar-footer {
@@ -356,7 +355,7 @@ const handleLogout = () => {
 }
 
 input:checked + .slider {
-  background-color: #4e78f6;
+  background-color:  orange;
 }
 
 input:checked + .slider:before {
@@ -372,21 +371,23 @@ input:checked + .slider:before {
   justify-content: center;
   gap: 8px;
   padding: 12px 16px;
-  background-color: #1677ff;
-  color: #fff;
+   
+  color: black;
   border: none;
   border-radius: 8px;
   font-size: 15px;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(22, 119, 255, 0.2);
+  background-color: #ffe878;
+   
 }
 
 .new-chat-btn:hover {
-  background-color: #4096ff;
+  background-color: #fed71a; /* 原为 #4096ff，悬浮时改为黄色 */
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(22, 119, 255, 0.3);
+  /* 阴影颜色同步改为橙色半透明 */
+  box-shadow: 0 4px 12px rgba(255, 146, 28, 0.3);
 }
 
 .new-chat-btn:active {

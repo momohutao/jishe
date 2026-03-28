@@ -65,7 +65,7 @@ const closePreview = () => {
 }
 
 .upload-btn {
-  background: #4f46e5;
+  background: #FCFA98;
   color: white;
   border: none;
   padding: 10px 20px;

@@ -160,7 +160,7 @@ const previewTemplate = (tpl) => {
 .back-btn {
   background: none; border: none; font-size: 14px; color: #666; cursor: pointer;
 }
-.back-btn:hover { color: #1677ff; }
+.back-btn:hover { color: #ffe878; }
 
 .tab-list {
   display: flex;

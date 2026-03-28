@@ -5,7 +5,6 @@
       <!-- 左侧 Logo 和项目名称（点击回到主页） -->
       <router-link to="/" class="logo">
         <span class="logo-icon"><img src="./assets/images/logo.png" alt="" /></span>
-        <span class="project-name">ClassWeave 织课</span>
       </router-link>
 
       <!-- 右侧导航链接 -->
@@ -74,8 +73,10 @@ body {
 }
 
 .logo-icon img {
-  width: 40px;
-  height: 30px;
+  width: 219px;
+  height: 109px;
+  padding-top: 10px;
+  mix-blend-mode: multiply;
 }
 
 .project-name {
