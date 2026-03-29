@@ -1,4 +1,4 @@
-const SCRIPT_LOAD_TIMEOUT = 15000;
+const SCRIPT_LOAD_TIMEOUT = 1500000;
 
 export function waitForDocsApi(timeoutMs = SCRIPT_LOAD_TIMEOUT) {
   return new Promise((resolve, reject) => {

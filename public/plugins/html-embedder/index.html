@@ -1,22 +1,33 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <title>插入H5网页</title>
     <style>
         /* 基础重置 */
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; background: #000; }
-        
-        /* 播放模式下的 iframe 样式，确保绝对占满全屏 */
-        iframe { 
-            position: absolute;
-            top: 0; left: 0;
-            width: 100vw; 
-            height: 100vh; 
-            border: none; 
-            display: block; 
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: #000;
         }
-        
+
+        /* 播放模式下的 iframe 样式，确保绝对占满全屏 */
+        iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            border: none;
+            display: block;
+        }
+
         /* 插入模式下的 UI 界面样式 */
         .insert-container {
             display: flex;
@@ -28,17 +39,24 @@
             padding: 20px;
             box-sizing: border-box;
         }
+
         .insert-card {
             background: #fff;
             padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             text-align: center;
             width: 90%;
             max-width: 450px;
         }
-        h3 { margin-top: 0; color: #333; }
-        select, input {
+
+        h3 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        select,
+        input {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
@@ -47,7 +65,7 @@
             font-size: 14px;
             box-sizing: border-box;
         }
-        
+
         /* 新增：图片预览区域的样式 */
         .preview-box {
             width: 100%;
@@ -61,6 +79,7 @@
             overflow: hidden;
             background-color: #fafafa;
         }
+
         .preview-box img {
             max-width: 100%;
             max-height: 100%;
@@ -80,16 +99,20 @@
             transition: background 0.3s;
             margin-top: 10px;
         }
-        button:hover { background-color: #4096ff; }
+
+        button:hover {
+            background-color: #4096ff;
+        }
     </style>
     <script type="text/javascript" src="https://onlyoffice.github.io/sdkjs-plugins/v1/plugins.js"></script>
     <script type="text/javascript" src="https://onlyoffice.github.io/sdkjs-plugins/v1/plugins-ui.js"></script>
 </head>
+
 <body>
     <div id="app"></div>
 
     <script>
-        window.Asc.plugin.init = function() {
+        window.Asc.plugin.init = function () {
             var appDiv = document.getElementById("app");
 
             if (window.Asc.plugin.info.objectId) {
@@ -97,31 +120,33 @@
                 // 模式 A：播放模式
                 // ==========================================
                 var oleData = window.Asc.plugin.info.data;
+                console.log("👉 [插件调试] 从图片读取到的原始数据 oleData: ", oleData);
                 if (oleData) {
                     var parsedData;
-                    
+
                     // 【非常重要】：防报错机制（处理 JSON 解析异常）
                     if (typeof oleData === "string") {
                         try {
                             if (oleData === "[object Object]") {
-                                parsedData = { url: "http://localhost:5173/h5/ai-generated.html" };
+                                parsedData = { url: "http://47.109.139.75/tmp/h5-game-plugin/ai-generated.html" };
                             } else {
                                 parsedData = JSON.parse(oleData);
                             }
                         } catch (e) {
-                            parsedData = { url: "" };
+                            console.error("👉 [插件调试] JSON 解析失败", e);
+                            parsedData = { url: "http://localhost:5173/h5/ai-generated.html" };
                         }
                     } else {
                         parsedData = oleData;
                     }
-
+                    console.log("👉 [插件调试] 最终准备放入 iframe 的 parsedData: ", parsedData);
                     // 动态创建 iframe 播放网页，加入 allowfullscreen 允许内部 H5 网页全屏
                     if (parsedData && parsedData.url) {
                         appDiv.innerHTML = '<iframe src="' + parsedData.url + '" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>';
                     } else {
                         appDiv.innerHTML = '<h3 style="text-align:center; padding-top:20px; color:#fff;">未能读取到有效的网页地址</h3>';
                     }
-                    
+
                 } else {
                     appDiv.innerHTML = '<h3 style="text-align:center; padding-top:20px; color:#fff;">未发现关联数据</h3>';
                 }
@@ -130,7 +155,7 @@
                 // ==========================================
                 // 模式 B：插入模式（显示选择界面和预览图）
                 // ==========================================
-                
+
                 appDiv.innerHTML = `
                     <div class="insert-container">
                         <div class="insert-card">
@@ -161,14 +186,14 @@
                 `;
 
                 // 【新增逻辑】：监听下拉框的选择变化，实时切换预览图片
-                document.getElementById("html-selector").addEventListener("change", function() {
+                document.getElementById("html-selector").addEventListener("change", function () {
                     var selectedOption = this.options[this.selectedIndex];
                     var imgSrc = selectedOption.getAttribute("data-img");
                     document.getElementById("img-preview").src = imgSrc;
                 });
 
                 // 【新增逻辑】：监听输入框，如果用户自己输入了链接，给出提示或切换默认图
-                document.getElementById("custom-url").addEventListener("input", function() {
+                document.getElementById("custom-url").addEventListener("input", function () {
                     var defaultImg = "https://picui.ogmua.cn/s1/2026/03/26/69c4c689abf26.webp";
                     if (this.value.trim() !== "") {
                         document.getElementById("img-preview").src = defaultImg; // 手动输入时展示默认图
@@ -180,10 +205,10 @@
                 });
 
                 // 确认按钮点击事件
-                document.getElementById("insert-btn").onclick = function() {
+                document.getElementById("insert-btn").onclick = function () {
                     var selector = document.getElementById("html-selector");
                     var selectedOption = selector.options[selector.selectedIndex];
-                    
+
                     var selectedUrl = selectedOption.value;
                     var selectedImg = selectedOption.getAttribute("data-img");
 
@@ -210,12 +235,13 @@
                         "heightPix": 100 * 36000
                     };
 
-                    window.Asc.plugin.executeMethod("AddOleObject", [_param], function() {
-                        window.Asc.plugin.executeCommand("close", ""); 
+                    window.Asc.plugin.executeMethod("AddOleObject", [_param], function () {
+                        window.Asc.plugin.executeCommand("close", "");
                     });
                 };
             }
         };
     </script>
 </body>
+
 </html>

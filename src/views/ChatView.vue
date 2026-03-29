@@ -8,6 +8,7 @@
       @logout="onLogout"
       @new-chat="startNewChat"
       @load-history="handleLoadHistory"
+      @mention="handleMention"
     />
 
     <!-- 中间：AI 聊天对话区 -->
@@ -41,7 +42,7 @@
             <ThinkingLogo v-if="msg.role === 'ai'" :isThinking="msg.isThinking" />
             <div
               class="content text-content ai-text"
-              v-if="msg.role === 'ai' && msg.type === 'text'&& !msg.isThinking"
+              v-if="msg.role === 'ai' && msg.type === 'text' && !msg.isThinking"
             >
               {{ msg.content }}
             </div>
@@ -68,7 +69,16 @@
                       value="corporate"
                       :disabled="msg.isSubmitted"
                     />
-                    <span class="radio-icon"></span> 企业内训/老师培训
+                    <span class="radio-icon"></span> 小学生
+                  </label>
+                  <label :class="{ active: msg.formData.audience === 'student' }">
+                    <input
+                      type="radio"
+                      v-model="msg.formData.audience"
+                      value="student"
+                      :disabled="msg.isSubmitted"
+                    />
+                    <span class="radio-icon"></span> 中学生
                   </label>
                 </div>
               </div>
@@ -151,13 +161,16 @@
           </div>
 
           <!-- 文本输入区 -->
-          <textarea
-            v-model="inputText"
+          <div
+            class="rich-textarea"
+            contenteditable="true"
+            ref="editorRef"
             :placeholder="
               isRecording ? '正在聆听中，请讲话...' : '输入主题，或上传参考资料提取生成 PPT...'
             "
+            @input="handleEditorInput"
             @keydown.enter.prevent="handleSend"
-          ></textarea>
+          ></div>
 
           <!-- 底部工具栏：语音、附件、发送按钮 -->
           <div class="input-toolbar">
@@ -246,7 +259,7 @@
 
     <!-- 右侧：PPT 预览组件 -->
     <div class="preview-panel" v-if="currentPreviewPayload">
-      <PptPreview :document-config="currentPreviewPayload" @close="closePreview"/>
+      <PptPreview :document-config="currentPreviewPayload" @close="closePreview" />
     </div>
   </div>
 </template>
@@ -263,12 +276,42 @@ const router = useRouter()
 const currentPreviewPayload = ref<any | null>(null)
 const inputText = ref('')
 const chatListRef = ref<HTMLElement | null>(null)
+const editorRef = ref<HTMLElement | null>(null)
+
+// 新增：监听 div 的输入事件，同步到你原本的 inputText 中
+const handleEditorInput = (e: Event) => {
+  const target = e.target as HTMLElement
+  inputText.value = target.innerText // 依然保留纯文本供后端或发送逻辑使用
+}
+
+// 修改：handleMention 逻辑
+const handleMention = (kbName) => {
+  if (!editorRef.value) return
+  
+  // 生成带有颜色的 HTML 标签
+  const mentionHtml = `<span style="color: #F2D850;">@${kbName}</span>&nbsp;`
+  
+  // 将带有颜色的标签插入到编辑器中
+  editorRef.value.innerHTML += mentionHtml
+  
+  // 同步更新 inputText (只提取纯文本内容)
+  inputText.value = editorRef.value.innerText
+
+  // 核心体验优化：让光标自动跳到文字最后面
+  const range = document.createRange()
+  const sel = window.getSelection()
+  range.selectNodeContents(editorRef.value)
+  range.collapse(false) // 折叠到末尾
+  sel?.removeAllRanges()
+  sel?.addRange(range)
+  editorRef.value.focus()
+}
 const onLogout = () => {
   console.log('用户已退出登录')
   // 这里写清除 Token、跳转登录页的逻辑
   router.push('/login')
 }
-
+ 
 const historyList = ref([{ id: 1, title: '人工智能发展史' }])
 
 const messages = ref<any[]>([
@@ -438,11 +481,11 @@ const handleSend = () => {
       aiReply = '收到需求，正在为您分析...'
     }
 
-  if (messages.value[thinkingIndex]) {
-      messages.value[thinkingIndex].isThinking = false; // 动画停止，变为完整态
-      messages.value[thinkingIndex].content = aiReply;  // 填入文字
+    if (messages.value[thinkingIndex]) {
+      messages.value[thinkingIndex].isThinking = false // 动画停止，变为完整态
+      messages.value[thinkingIndex].content = aiReply // 填入文字
     }
-    scrollToBottom();
+    scrollToBottom()
 
     setTimeout(() => {
       messages.value.push({
@@ -537,7 +580,7 @@ const handleLoadHistory = (historyItem: any) => {
   }
 }
 const closePreview = () => {
-  currentPreviewPayload.value = null;
+  currentPreviewPayload.value = null
 }
 const startNewChat = () => {
   // 1. 判断当前对话是否值得保存 (即：除了 AI 的第一句问候，用户有没有发过消息)
@@ -654,7 +697,7 @@ const startNewChat = () => {
 }
 
 .message-ai .avatar {
-  background-color: #FFB800;
+  background-color: #ffb800;
   margin-right: 16px;
 }
 
@@ -687,7 +730,7 @@ const startNewChat = () => {
 
 /* =========== 用户消息(多模态附件)展示 =========== */
 .user-content-wrapper {
-  background-color: #dfedd6 ;
+  background-color: #dfedd6;
   border-radius: 12px 2px 12px 12px;
   padding: 12px;
   color: #333;
@@ -807,7 +850,7 @@ const startNewChat = () => {
 }
 
 .file-card:hover {
-  border-color:  #FFB800;
+  border-color: #ffb800;
 }
 
 .file-cover {
@@ -901,7 +944,7 @@ const startNewChat = () => {
 }
 
 .input-wrapper:focus-within {
-  border-color: #FFB800;
+  border-color: #ffb800;
   background: #fff;
   box-shadow: 0 4px 16px rgba(22, 119, 255, 0.05);
 }
@@ -924,9 +967,9 @@ const startNewChat = () => {
 .att-tag {
   display: inline-flex;
   align-items: center;
-background: #FFF7D6;
-  border: 1px solid #FFB800;
-  color: #CC8800;
+  background: #fff7d6;
+  border: 1px solid #ffb800;
+  color: #cc8800;
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 12px;
@@ -935,7 +978,7 @@ background: #FFF7D6;
 .remove-att {
   background: transparent;
   border: none;
-  color: #CC8800;
+  color: #cc8800;
   margin-left: 6px;
   cursor: pointer;
   font-weight: bold;
@@ -1036,12 +1079,12 @@ background: #FFF7D6;
 
 .dropdown-item:hover {
   background: #f5f5f5;
-   color: #FFB800;
+  color: #ffb800;
 }
 
 /* 麦克风录音动画 */
 .mic-btn.recording-active {
-  color:  #FFB800;
+  color: #ffb800;
   animation: pulse 1.5s infinite;
 }
 
@@ -1064,7 +1107,7 @@ background: #FFF7D6;
 
 .send-btn {
   padding: 8px 24px;
-  background-color:  #a2bb7a;
+  background-color: #a2bb7a;
   color: white;
   border: none;
   border-radius: 8px;
@@ -1094,7 +1137,28 @@ background: #FFF7D6;
   background: #fff;
   animation: slideIn 0.3s ease-out;
 }
+.rich-textarea {
+  width: 100%;
+  min-height: 60px;
+  max-height: 120px; /* 如果内容多可以限制最大高度 */
+  overflow-y: auto;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 15px;
+  box-sizing: border-box;
+  text-align: left;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
 
+/* 模拟 textarea 的 placeholder 效果 */
+.rich-textarea:empty:before {
+  content: attr(placeholder);
+  color: #999;
+  pointer-events: none;
+  display: block; /* 保证空状态下光标位置正确 */
+}
 @keyframes slideIn {
   from {
     opacity: 0;

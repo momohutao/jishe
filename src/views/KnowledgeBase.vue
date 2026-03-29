@@ -4,16 +4,32 @@
     <header class="kb-header">
       <div class="header-left">
         <button class="back-btn" @click="goBack">
-          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            stroke="currentColor"
+            stroke-width="2"
+            fill="none"
+          >
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
           返回对话
         </button>
-        <h2 class="page-title"><img src="../assets/images/知识库2.png" alt="" class="icon-img">个人本地知识库</h2>
+        <h2 class="page-title">
+          <img src="../assets/images/知识库2.png" alt="" class="icon-img" />个人本地知识库
+        </h2>
       </div>
       <div class="header-right">
         <button class="upload-btn">
-          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+          <svg
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            stroke="currentColor"
+            stroke-width="2"
+            fill="none"
+          >
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
@@ -24,11 +40,19 @@
 
     <!-- 知识库内容区 -->
     <div class="kb-content">
+      <div class="tabs-wrapper">
+        <div class="tab-item" :class="{ active: activeTab === 'mine' }" @click="activeTab = 'mine'">
+          我的资料
+        </div>
+        <div class="tab-item" :class="{ active: activeTab === 'ai' }" @click="activeTab = 'ai'">
+          AI文档
+        </div>
+      </div>
       <div class="files-grid">
-        <div class="file-card" v-for="file in fileList" :key="file.id">
+        <div class="file-card" v-for="file in filteredList" :key="file.id">
           <!-- 文件类型图标 -->
           <div class="file-icon" :class="'icon-' + file.type">
-            <img :src="getFileIcon(file.type)" alt="icon" class="file-type-img">
+            <img :src="getFileIcon(file.type)" alt="icon" class="file-type-img" />
           </div>
           <!-- 文件信息 -->
           <div class="file-info">
@@ -44,7 +68,6 @@
             <button class="action-btn" title="预览文件">👁️</button>
             <button class="action-btn" title="删除">🗑️</button>
           </div>
-
         </div>
       </div>
     </div>
@@ -52,7 +75,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -68,24 +91,98 @@ const getFileIcon = (type) => {
     word: 'src/assets/images/word.png',
     ppt: 'src/assets/images/ppt.png',
     video: 'src/assets/images/video.png',
-    excel: 'src/assets/images/excel.png'
+    excel: 'src/assets/images/excel.png',
   }
   return iconMap[type] || '📁'
 }
+const activeTab = ref('mine')
 
 // 模拟 A04 赛题相关的本地知识库文件数据 (10个左右)
 const fileList = ref([
-  { id: 1, name: 'A04_多模态AI互动式教学智能体赛题.pdf', type: 'pdf', size: '2.4 MB', date: '2023-10-24' },
-  { id: 2, name: '锐捷网络_ICT基础设施解决方案.pdf', type: 'pdf', size: '5.1 MB', date: '2023-10-25' },
-  { id: 3, name: '第一章_人工智能发展史教案.word', type: 'word', size: '1.2 MB', date: '2023-10-26' },
-  { id: 4, name: '深度学习算法核心知识点梳理.ppt', type: 'ppt', size: '8.5 MB', date: '2023-10-26' },
-  { id: 5, name: '云课堂多模态交互演示素材.video', type: 'video', size: '45.0 MB', date: '2023-10-27' },
-  { id: 6, name: '大模型检索增强RAG技术白皮书.pdf', type: 'pdf', size: '3.6 MB', date: '2023-10-28' },
-  { id: 7, name: '教学意图理解与知识融合模块设计.word', type: 'word', size: '890 KB', date: '2023-10-29' },
-  { id: 8, name: '数字人教师授课测试片段.video', type: 'video', size: '120 MB', date: '2023-10-29' },
-  { id: 9, name: 'AI辅助教学工具市场调研数据.excel', type: 'excel', size: '150 KB', date: '2023-10-30' },
-  { id: 10, name: '最终提交_项目演示与PPT生成结果.video', type: 'video', size: '250 MB', date: '2023-10-31' }
+  {
+    id: 1,
+    name: 'A04_多模态AI互动式教学智能体赛题.pdf',
+    type: 'pdf',
+    size: '2.4 MB',
+    date: '2023-10-24',
+    category: 'mine',
+  },
+  {
+    id: 2,
+    name: '锐捷网络_ICT基础设施解决方案.pdf',
+    type: 'pdf',
+    size: '5.1 MB',
+    date: '2023-10-25',
+    category: 'mine',
+  },
+  {
+    id: 3,
+    name: '第一章_人工智能发展史教案.word',
+    type: 'word',
+    size: '1.2 MB',
+    date: '2023-10-26',
+    category: 'ai',
+  }, // 设为 ai
+  {
+    id: 4,
+    name: '深度学习算法核心知识点梳理.ppt',
+    type: 'ppt',
+    size: '8.5 MB',
+    date: '2023-10-26',
+    category: 'ai',
+  }, // 设为 ai
+  {
+    id: 5,
+    name: '云课堂多模态交互演示素材.video',
+    type: 'video',
+    size: '45.0 MB',
+    date: '2023-10-27',
+    category: 'mine',
+  },
+  {
+    id: 6,
+    name: '大模型检索增强RAG技术白皮书.pdf',
+    type: 'pdf',
+    size: '3.6 MB',
+    date: '2023-10-28',
+    category: 'mine',
+  },
+  {
+    id: 7,
+    name: '教学意图理解与知识融合模块设计.word',
+    type: 'word',
+    size: '890 KB',
+    date: '2023-10-29',
+    category: 'mine',
+  },
+  {
+    id: 8,
+    name: '数字人教师授课测试片段.video',
+    type: 'video',
+    size: '120 MB',
+    date: '2023-10-29',
+    category: 'mine',
+  },
+  {
+    id: 9,
+    name: 'AI辅助教学工具市场调研数据.excel',
+    type: 'excel',
+    size: '150 KB',
+    date: '2023-10-30',
+    category: 'mine',
+  },
+  {
+    id: 10,
+    name: '最终提交_项目演示与PPT生成结果.video',
+    type: 'video',
+    size: '250 MB',
+    date: '2023-10-31',
+    category: 'mine',
+  }, // 视情况可改为 ai
 ])
+const filteredList = computed(() => {
+  return fileList.value.filter((file) => file.category === activeTab.value)
+})
 </script>
 
 <style scoped>
@@ -306,5 +403,42 @@ const fileList = ref([
   height: 22px;
   object-fit: contain;
   padding: 10px;
+} /* 新增：Tab 切换栏样式 */
+.tabs-wrapper {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #eaeaea;
+  padding-bottom: 0;
+}
+
+.tab-item {
+  font-size: 16px;
+  color: #666;
+  cursor: pointer;
+  padding-bottom: 12px;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.tab-item:hover {
+  color: #F2D850;
+}
+
+.tab-item.active {
+  color: #F2D850;
+  font-weight: 600;
+}
+
+/* 激活状态的下划线 */
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; /* 盖住底部的边框 */
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: #F2D850;
+  border-radius: 3px;
 }
 </style>

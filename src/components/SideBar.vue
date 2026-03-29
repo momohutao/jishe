@@ -13,7 +13,6 @@
     </div>
 
     <div class="sidebar-content" v-show="isOpen">
-    
       <!-- 1. 个人画像 -->
       <section class="menu-section">
         <h4 class="section-title interactive-title">
@@ -55,7 +54,34 @@
         </div>
       </section>
 
-      <!-- 3. 个人知识库 -->
+      <!-- 3. 项目 -->
+      <section class="menu-section">
+        <h4 class="section-title interactive-title" @click="goToLigong">
+          <div class="title-left">
+            <!-- 默认显示的黑色图标 -->
+            <img src="../assets/images/项目.png" alt="" class="icon-img icon-default" />
+            <!-- 悬浮时显示的蓝色图标 -->
+            <img src="../assets/images/项目2.png" alt="" class="icon-img icon-hover" />
+            <span class="title-text">项目</span>
+          </div>
+          <span class="enter-arrow">进入 ➔</span>
+        </h4>
+        <div class="list-items">
+          <div
+            class="item"
+            v-for="(kb, index) in knowledgeBases"
+            :key="index"
+            @click.stop="toggleMention(kb)"
+         
+          >
+            <!-- 自定义勾选框：选中时显示黄色 @ -->
+            <div class="mention-checkbox" :class="{ 'is-checked': kb.checked }">
+              <span v-if="kb.checked">@</span>
+            </div>
+            <span class="item-text"    @click="goToLigong">{{ kb.name }}</span>
+          </div>
+        </div>
+      </section>
       <section class="menu-section">
         <h4 class="section-title interactive-title" @click="goToKnowledge">
           <div class="title-left">
@@ -103,24 +129,41 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
+import { ref } from 'vue'
 
 const router = useRouter()
 
 const goToKnowledge = () => {
   router.push('/knowledge')
 }
-
+const knowledgeBases = ref([
+  { name: '理工大学人工智能专业知识库', checked: false },
+  { name: '综合大学AI通识课程知识库', checked: false },
+  { name: '实验小学AI启蒙教育知识库', checked: false },
+  { name: '实验中学科创人工智能知识库', checked: false }
+])
+const toggleMention = (kb) => {
+  kb.checked = !kb.checked
+  if (kb.checked) {
+    // 触发 mention 事件，将知识库名称传给父组件
+    // 父组件拿到这个名字后，就可以拼接到聊天输入框的文字里了
+    emit('mention', kb.name)
+  }
+}
 defineProps({
   isOpen: Boolean,
   history: Array,
 })
 
-const emit = defineEmits(['toggle', 'logout', 'new-chat', 'load-history'])
+const emit = defineEmits(['toggle', 'logout', 'new-chat', 'load-history','mention'])
 
 const handleLogout = () => {
   if (confirm('确定要退出登录吗？')) {
     emit('logout')
   }
+}
+const goToLigong=()=>{
+  router.push('/ligong')
 }
 </script>
 
@@ -155,7 +198,6 @@ const handleLogout = () => {
   gap: 10px;
   font-weight: bold;
   font-size: 18px;
- 
 }
 
 .sidebar-content {
@@ -221,12 +263,10 @@ const handleLogout = () => {
 
 /* =========== 核心优化：Hover 动态交互效果 =========== */
 
- 
 .interactive-title:hover {
-  background-color:   #fff9cc; 
+  background-color: #fff9cc;
 }
 
- 
 .interactive-title:hover .title-text {
   color: #a2bb7a;
   transform: scale(1.08);
@@ -236,13 +276,12 @@ const handleLogout = () => {
 /* 3. 悬浮时：图片放大 + 变蓝 */
 .interactive-title:hover .icon-img {
   transform: scale(1.15);
- 
 }
 .icon-hover {
   display: none; /* 默认状态隐藏蓝色图标 */
 }
 .interactive-title:hover .icon-default {
-  display: none; 
+  display: none;
 }
 
 .interactive-title:hover .icon-hover {
@@ -256,7 +295,7 @@ const handleLogout = () => {
 
 /* =========== 下方列表与个人信息区域 =========== */
 .list-items .item {
-  padding: 8px 12px 8px 42px;
+  padding: 8px 12px 8px 16px;
   margin-bottom: 4px;
   border-radius: 8px;
   font-size: 13px;
@@ -266,11 +305,39 @@ const handleLogout = () => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: flex; /* 新增 */
+  align-items: center; /* 新增 */
+  gap: 8px; /* 新增：勾选框和文字的间距 */
+}
+.item-text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mention-checkbox {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 900;
+  transition: all 0.2s;
+  flex-shrink: 0;
 }
 
+/* 选中后的黄色 @ 样式 */
+.mention-checkbox.is-checked {
+  border-color: #fed71a; /* 边框变黄 */
+  background-color: #fff9cc; /* 背景浅黄 */
+  color: #f7a200; /* @ 符号的颜色(深黄色/橘色) */
+}
 .list-items .item:hover {
   background-color: #fff9cc; /* 原为 #f5f7fa，现改为浅黄背景 */
-  color: #a2bb7a; 
+  color: #a2bb7a;
 }
 
 .sidebar-footer {
@@ -355,7 +422,7 @@ const handleLogout = () => {
 }
 
 input:checked + .slider {
-  background-color:  orange;
+  background-color: orange;
 }
 
 input:checked + .slider:before {
@@ -371,7 +438,7 @@ input:checked + .slider:before {
   justify-content: center;
   gap: 8px;
   padding: 12px 16px;
-   
+
   color: black;
   border: none;
   border-radius: 8px;
@@ -380,7 +447,6 @@ input:checked + .slider:before {
   cursor: pointer;
   transition: all 0.3s ease;
   background-color: #ffe878;
-   
 }
 
 .new-chat-btn:hover {
