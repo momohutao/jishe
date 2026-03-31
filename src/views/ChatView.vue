@@ -46,7 +46,35 @@
             >
               {{ msg.content }}
             </div>
+            <div class="content outline-card" v-if="msg.type === 'outline'">
+              <div class="outline-header">
+                <div class="header-left">
+                  <span class="icon">📄</span>
+                  <span class="title">内容大纲已生成</span>
+                </div>
+                <button class="download-word-btn" @click="downloadOutlineAsWord(msg.content)">
+                  导出 Word
+                </button>
+              </div>
 
+              <div class="outline-body">
+                <!-- contenteditable 让用户可以直接在这里微调 -->
+                <div
+                  class="outline-editor"
+                  contenteditable="true"
+                  @blur="(e) => msg.content = (e.target as HTMLElement).innerText"
+                >
+                  <!-- 这里可以简单处理，或者引入 markdown-it 渲染 -->
+                  {{ msg.content }}
+                </div>
+              </div>
+
+              <div class="outline-footer">
+                <span class="tip"
+                  >💡 提示：您可以直接修改上方文字，或在下方输入意见让 AI 调整。</span
+                >
+              </div>
+            </div>
             <!-- 3. AI 需求确认表单卡片 (保留原有功能) -->
             <div class="content form-card" v-if="msg.type === 'form'">
               <!-- ...（表单内容与之前完全一致，此处略写以节省篇幅，具体保持不变）... -->
@@ -267,9 +295,11 @@
 <script lang="ts" setup>
 import { ref, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
+import { saveAs } from 'file-saver' // 用于下载文件
 import PptPreview from '../components/PptPreview.vue'
 import SideBar from '../components/SideBar.vue'
 import ThinkingLogo from '../components/ThinkingLogo.vue'
+import { Document, Packer, Paragraph, TextRun } from 'docx'
 // ==== 基础状态 ====
 const isSidebarOpen = ref(true) // 控制开关的状态
 const router = useRouter()
@@ -287,13 +317,13 @@ const handleEditorInput = (e: Event) => {
 // 修改：handleMention 逻辑
 const handleMention = (kbName) => {
   if (!editorRef.value) return
-  
+
   // 生成带有颜色的 HTML 标签
   const mentionHtml = `<span style="color: #F2D850;">@${kbName}</span>&nbsp;`
-  
+
   // 将带有颜色的标签插入到编辑器中
   editorRef.value.innerHTML += mentionHtml
-  
+
   // 同步更新 inputText (只提取纯文本内容)
   inputText.value = editorRef.value.innerText
 
@@ -311,7 +341,7 @@ const onLogout = () => {
   // 这里写清除 Token、跳转登录页的逻辑
   router.push('/login')
 }
- 
+
 const historyList = ref([{ id: 1, title: '人工智能发展史' }])
 
 const messages = ref<any[]>([
@@ -450,90 +480,133 @@ const simulateVoiceInput = () => {
 
 // ==== 发送逻辑 ====
 const handleSend = () => {
+  
   if (!inputText.value.trim() && pendingAttachments.value.length === 0) return
 
-  const userMsg: any = { role: 'user', type: 'text', content: inputText.value }
-  if (pendingAttachments.value.length > 0) {
-    userMsg.attachments = [...pendingAttachments.value]
-  }
-  messages.value.push(userMsg)
-
+  const userContent = inputText.value
+  messages.value.push({ role: 'user', type: 'text', content: userContent })
   inputText.value = ''
-  pendingAttachments.value = []
   scrollToBottom()
 
   const thinkingIndex = messages.value.length
-  // 思考中消息
-  messages.value.push({
-    role: 'ai',
-    isThinking: true, // 开启当前这句的动画
-    content: '',
-    type: 'text',
-  })
-  scrollToBottom()
+  messages.value.push({ role: 'ai', isThinking: true, content: '', type: 'text' })
+if (editorRef.value) {
+    editorRef.value.innerText = ''  // 清空页面显示
+    editorRef.value.innerHTML = ''   // 清空富文本内容
+  }
+  inputText.value = ''              // 清空绑定变量
+  pendingAttachments.value = []     // 清空待发送附件
 
   setTimeout(() => {
-    // 先定义 aiReply
-    let aiReply = ''
-    if (userMsg.attachments && userMsg.attachments.length > 0) {
-      aiReply = '✅ 已解析您上传的资料，正在提取核心内容...'
-    } else {
-      aiReply = '收到需求，正在为您分析...'
-    }
+    if (!messages.value[thinkingIndex]) return
+    messages.value[thinkingIndex].isThinking = false
 
-    if (messages.value[thinkingIndex]) {
-      messages.value[thinkingIndex].isThinking = false // 动画停止，变为完整态
-      messages.value[thinkingIndex].content = aiReply // 填入文字
-    }
-    scrollToBottom()
+    const hasOutline = messages.value.some((m) => m.type === 'outline')
+    const hasFile = messages.value.some((m) => m.type === 'file')
 
-    setTimeout(() => {
+    // 1. 核心修复：如果用户提到“生成PPT”或“确认大纲”，且当前已有大纲
+    if ((userContent.includes('PPT') || userContent.includes('确认')) && hasOutline) {
+      messages.value[thinkingIndex].content = '教案已确认！正在为您精选模板并生成 PPT...'
+      
+      setTimeout(() => {
+        // 发送你原来可以成功预览的那个 PPT Payload
+        messages.value.push({
+          role: 'ai',
+          type: 'file',
+          content: mockOnlyOfficePreviewResponse.data.fileName,
+          previewPayload: mockOnlyOfficePreviewResponse, // 确保这个变量存在且正确
+          showActions: true,
+          suggestions: ['把配色换成科技蓝', '增加三页关于 AI 历史的内容'],
+        })
+        scrollToBottom()
+      }, 2000)
+    } 
+    // 2. 如果已经有文件了，走修改逻辑
+    else if (hasFile) {
+      messages.value[thinkingIndex].content = `收到修改意见。正在为您重新生成...`
+      setTimeout(() => {
+        const newPayload = JSON.parse(JSON.stringify(mockOnlyOfficePreviewResponse))
+        newPayload.data.fileId = "file_" + Date.now() // 必须改ID，右侧预览才会刷新
+        messages.value.push({
+          role: 'ai',
+          type: 'file',
+          content: '修改版_课件.pptx',
+          previewPayload: newPayload,
+          showActions: true
+        })
+        scrollToBottom()
+      }, 2000)
+    }
+    // 3. 默认情况（第一次输入）
+    else {
+      messages.value[thinkingIndex].content = '为了帮您生成更精准的 PPT，请先选择您的课件受众：'
       messages.value.push({
         role: 'ai',
         type: 'form',
         isSubmitted: false,
         formData: { audience: 'college' },
       })
-      scrollToBottom()
-    }, 5000)
-  }, 5200)
+    }
+    scrollToBottom()
+  }, 1000)
 }
-
 // 点击推荐词条直接发送
 const sendSuggestion = (text: string) => {
-  messages.value.push({ role: 'user', type: 'text', content: text })
-  scrollToBottom()
-  setTimeout(() => {
-    messages.value.push({
-      role: 'ai',
-      type: 'text',
-      content: `收到补充要求：“${text}”。正在对大纲与排版进行微调...`,
-    })
-    scrollToBottom()
-  }, 800)
+  // 1. 将建议词填入输入框（模拟用户打字）
+  inputText.value = text
+  // 2. 直接触发发送逻辑
+  handleSend()
 }
 
 // 提交表单 (保留生成卡片的逻辑)
 const submitRequirements = (msg: any) => {
   msg.isSubmitted = true
-  messages.value.push({
-    role: 'user',
-    type: 'text',
-    content: '确认需求并生成',
+  // 获取用户选中的受众文字
+  const audienceMap: Record<string, string> = {
+    college: '大学/研究生',
+    corporate: '小学生',
+    student: '中学生'
+  }
+  const audienceText = audienceMap[msg.formData.audience] || '学生'
+
+  messages.value.push({ 
+    role: 'user', 
+    type: 'text', 
+    content: `确认需求：这份课件是给${audienceText}讲的，请生成教案大纲。` 
   })
   scrollToBottom()
 
+  // 模拟 AI 思考后生成大纲
   setTimeout(() => {
     messages.value.push({
       role: 'ai',
-      type: 'file',
-      content: mockOnlyOfficePreviewResponse.data.fileName,
-      previewPayload: mockOnlyOfficePreviewResponse,
-      showActions: true,
-      suggestions: ['结合视频内容补充一个具体的应用案例', '将整体配色改为科技风暗色系'],
+      type: 'outline',
+      content: `# ${audienceText}教学大纲\n\n## 第一章：课程导入\n- 趣味案例引入\n- 核心概念初探\n\n## 第二章：深度解析\n- 知识点 A 的逻辑\n- 互动实验设计\n\n## 第三章：总结回顾\n- 课堂测试\n- 课后作业`,
+      suggestions: ['确认大纲，生成 PPT', '内容太深了，简单一点', '增加更多互动环节'],
     })
     scrollToBottom()
-  }, 2000)
+  }, 1500)
+}
+
+// 2. 新增大纲导出 Word 的功能
+const downloadOutlineAsWord = (content: string) => {
+  const doc = new Document({
+    sections: [
+      {
+        properties: {},
+        children: content.split('\n').map(
+          (line) =>
+            new Paragraph({
+              children: [new TextRun(line)],
+            })
+        ),
+      },
+    ],
+  })
+
+  Packer.toBlob(doc).then((blob) => {
+    saveAs(blob, 'PPT大纲.docx')
+  })
 }
 const toggleImg = (event: Event, newPath: string) => {
   // 1. 获取当前点击的 img 元素
@@ -1151,7 +1224,81 @@ const startNewChat = () => {
   white-space: pre-wrap;
   word-wrap: break-word;
 }
+ .outline-card {
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 600px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
 
+.outline-header {
+  background: #fafafa;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #333;
+}
+
+.download-word-btn {
+  background: #1890ff;
+  color: white;
+  border: none;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.download-word-btn:hover {
+  opacity: 0.8;
+}
+
+.outline-body {
+  padding: 16px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.outline-editor {
+  outline: none;
+  line-height: 1.8;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 14px;
+  color: #444;
+  white-space: pre-wrap;
+  padding: 8px;
+  border: 1px transparent dashed;
+  transition: all 0.3s;
+}
+
+.outline-editor:focus {
+  background: #fffdf6;
+  border-color: #ffb800;
+}
+
+.outline-footer {
+  padding: 10px 16px;
+  background: #fffbe6;
+  border-top: 1px solid #ffe58f;
+}
+
+.outline-footer .tip {
+  font-size: 12px;
+  color: #856404;
+}
 /* 模拟 textarea 的 placeholder 效果 */
 .rich-textarea:empty:before {
   content: attr(placeholder);

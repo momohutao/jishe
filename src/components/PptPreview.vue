@@ -237,6 +237,18 @@ const toggleDigitalHuman = () => {
     currentSpeechText.value = ''
   }
 }
+watch(
+  () => props.documentConfig,
+  (newVal, oldVal) => {
+    // 只有当传入的配置真的发生变化时（比如 fileId 变了），才触发重新加载
+    if (newVal && JSON.stringify(newVal) !== JSON.stringify(oldVal)) {
+      console.log("检测到新文件 Payload，正在刷新编辑器...");
+      // 调用 reloadPreview 方法（你代码里已经定义了此方法）
+      reloadPreview(); 
+    }
+  },
+  { deep: true }
+)
 watch(isSpeaking, (newVal) => {
   if (!dhVideoRef.value) return
 
