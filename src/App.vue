@@ -4,7 +4,8 @@
     <header class="navbar">
       <!-- 左侧 Logo 和项目名称（点击回到主页） -->
       <router-link to="/" class="logo">
-        <span class="logo-icon"><img src="./assets/images/logo.png" alt="" /></span>
+        <span class="logo-icon"><img src="./assets/images/star.png" alt="" /></span>
+        <span class="text">灵构·智课</span>
       </router-link>
 
       <!-- 右侧导航链接 -->
@@ -73,10 +74,15 @@ body {
 }
 
 .logo-icon img {
-  width: 219px;
-  height: 109px;
-  padding-top: 10px;
+  width: 70px;
+  height: 70px;
+  padding: 10px 0;
   mix-blend-mode: multiply;
+}
+
+.logo .text {
+  font-size: 20px;
+  font-weight: 500;
 }
 
 .project-name {
