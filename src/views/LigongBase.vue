@@ -4,7 +4,14 @@
     <header class="kb-header">
       <div class="header-left">
         <button class="back-btn" @click="goBack">
-          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            stroke="currentColor"
+            stroke-width="2"
+            fill="none"
+          >
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
           返回对话
@@ -17,15 +24,40 @@
         </div>
       </div>
       <div class="header-right">
+        <!-- 新增：隐藏的文件选择框 -->
+        <input
+          type="file"
+          ref="fileInputRef"
+          style="display: none"
+          accept=".pdf,.doc,.docx,.txt"
+          @change="handleFileImport"
+        />
+
         <div class="search-box">
-          <svg viewBox="0 0 24 24" width="16" height="16" stroke="#999" stroke-width="2" fill="none">
+          <svg
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            stroke="#999"
+            stroke-width="2"
+            fill="none"
+          >
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
-          <input type="text" placeholder="检索书名、作者或 DOI..." />
+          <!-- 新增：v-model="searchQuery" 双向绑定搜索词 -->
+          <input type="text" v-model="searchQuery" placeholder="检索书名、作者或 分类..." />
         </div>
-        <button class="upload-btn">
-          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+        <!-- 新增：@click="triggerImport" 触发文件上传 -->
+        <button class="upload-btn" @click="triggerImport">
+          <svg
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            stroke="currentColor"
+            stroke-width="2"
+            fill="none"
+          >
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="17 8 12 3 7 8"></polyline>
             <line x1="12" y1="3" x2="12" y2="15"></line>
@@ -64,7 +96,9 @@
           </div>
           <div class="col-actions">
             <button class="action-btn read-btn" title="在线阅读">PDF</button>
-            <button class="action-btn code-btn" title="代码/引用" v-if="item.type !== 'book'">{ }</button>
+            <button class="action-btn code-btn" title="代码/引用" v-if="item.type !== 'book'">
+              { }
+            </button>
           </div>
         </div>
       </div>
@@ -73,8 +107,8 @@
       <div class="pagination">
         <button :disabled="currentPage === 1" @click="changePage(currentPage - 1)">上一页</button>
         <div class="page-numbers">
-          <button 
-            v-for="page in displayPages" 
+          <button
+            v-for="page in displayPages"
             :key="page"
             :class="{ active: currentPage === page }"
             @click="typeof page === 'number' ? changePage(page) : null"
@@ -83,7 +117,9 @@
             {{ page }}
           </button>
         </div>
-        <button :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">下一页</button>
+        <button :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">
+          下一页
+        </button>
         <span class="page-info">共 {{ totalPages }} 页</span>
       </div>
     </div>
@@ -91,9 +127,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-
+import { ElMessage } from 'element-plus'
 const router = useRouter()
 const goBack = () => {
   router.push('/chat')
@@ -102,42 +138,198 @@ const goBack = () => {
 // 核心硬核书单和论文数据（基础库）
 const baseKnowledgeData = [
   // 机器学习基础
-  { title: '机器学习 (西瓜书)', author: '周志华', category: '经典理论', type: 'book', tags: ['ML', '国内标配', '必修'] },
-  { title: '统计学习方法 (第2版)', author: '李航', category: '经典理论', type: 'book', tags: ['极简硬核', '考研', '面试'] },
-  { title: 'Pattern Recognition and Machine Learning (PRML)', author: 'Christopher M. Bishop', category: '经典理论', type: 'book', tags: ['偏数学', '研究生标配'] },
-  { title: 'Machine Learning: A Probabilistic Perspective (MLAPP)', author: 'Kevin P. Murphy', category: '经典理论', type: 'book', tags: ['概率编程', '圣经', '深度拉满'] },
-  
+  {
+    title: '机器学习 (西瓜书)',
+    author: '周志华',
+    category: '经典理论',
+    type: 'book',
+    tags: ['ML', '国内标配', '必修'],
+  },
+  {
+    title: '统计学习方法 (第2版)',
+    author: '李航',
+    category: '经典理论',
+    type: 'book',
+    tags: ['极简硬核', '考研', '面试'],
+  },
+  {
+    title: 'Pattern Recognition and Machine Learning (PRML)',
+    author: 'Christopher M. Bishop',
+    category: '经典理论',
+    type: 'book',
+    tags: ['偏数学', '研究生标配'],
+  },
+  {
+    title: 'Machine Learning: A Probabilistic Perspective (MLAPP)',
+    author: 'Kevin P. Murphy',
+    category: '经典理论',
+    type: 'book',
+    tags: ['概率编程', '圣经', '深度拉满'],
+  },
+
   // 强化学习核心
-  { title: 'Reinforcement Learning: An Introduction (2nd Ed)', author: 'Richard S. Sutton & Andrew G. Barto', category: '经典理论', type: 'book', tags: ['RL第一圣经', 'C位'] },
-  { title: '深度强化学习', author: '王树森、黎彧君、张志华', category: '经典理论', type: 'book', tags: ['DRL入门', '高校实验室'] },
-  { title: 'Deep Reinforcement Learning Hands-On', author: 'Maxim Lapan', category: '工程实践', type: 'book', tags: ['理论+落地', 'PyTorch'] },
-  { title: 'Algorithms for Reinforcement Learning', author: 'Csaba Szepesvári', category: '经典算法', type: 'book', tags: ['偏算法', '理论严谨'] },
-  
+  {
+    title: 'Reinforcement Learning: An Introduction (2nd Ed)',
+    author: 'Richard S. Sutton & Andrew G. Barto',
+    category: '经典理论',
+    type: 'book',
+    tags: ['RL第一圣经', 'C位'],
+  },
+  {
+    title: '深度强化学习',
+    author: '王树森、黎彧君、张志华',
+    category: '经典理论',
+    type: 'book',
+    tags: ['DRL入门', '高校实验室'],
+  },
+  {
+    title: 'Deep Reinforcement Learning Hands-On',
+    author: 'Maxim Lapan',
+    category: '工程实践',
+    type: 'book',
+    tags: ['理论+落地', 'PyTorch'],
+  },
+  {
+    title: 'Algorithms for Reinforcement Learning',
+    author: 'Csaba Szepesvári',
+    category: '经典算法',
+    type: 'book',
+    tags: ['偏算法', '理论严谨'],
+  },
+
   // 深度学习
-  { title: '深度学习 (花书)', author: 'Ian Goodfellow / Yoshua Bengio', category: '经典理论', type: 'book', tags: ['全球标准', 'DL源头'] },
-  { title: 'Dive into Deep Learning (D2L)', author: 'Aston Zhang, 李沐等', category: '开源框架', type: 'book', tags: ['动手学', '代码驱动'] },
-  { title: '神经网络与深度学习', author: '邱锡鹏', category: '经典理论', type: 'book', tags: ['复旦教材', '体系完善'] },
-  
+  {
+    title: '深度学习 (花书)',
+    author: 'Ian Goodfellow / Yoshua Bengio',
+    category: '经典理论',
+    type: 'book',
+    tags: ['全球标准', 'DL源头'],
+  },
+  {
+    title: 'Dive into Deep Learning (D2L)',
+    author: 'Aston Zhang, 李沐等',
+    category: '开源框架',
+    type: 'book',
+    tags: ['动手学', '代码驱动'],
+  },
+  {
+    title: '神经网络与深度学习',
+    author: '邱锡鹏',
+    category: '经典理论',
+    type: 'book',
+    tags: ['复旦教材', '体系完善'],
+  },
+
   // 进阶理论与数学（硬核感来源）
-  { title: 'Dynamic Programming and Optimal Control', author: 'Dimitri P. Bertsekas', category: '经典理论', type: 'book', tags: ['最优控制', 'RL源头'] },
-  { title: 'Markov Decision Processes: Discrete Stochastic Dynamic Programming', author: 'Martin L. Puterman', category: '数学基础', type: 'book', tags: ['MDP天花板', '博士级别'] },
-  { title: 'Convex Optimization', author: 'Stephen Boyd, Lieven Vandenberghe', category: '数学基础', type: 'book', tags: ['凸优化', '底层原理'] },
-  { title: 'Numerical Optimization', author: 'Jorge Nocedal & Stephen J. Wright', category: '数学基础', type: 'book', tags: ['数值优化', '算法基石'] },
-  { title: 'Linear Algebra and Its Applications', author: 'Gilbert Strang', category: '数学基础', type: 'book', tags: ['线性代数', 'MIT神课'] },
-  
+  {
+    title: 'Dynamic Programming and Optimal Control',
+    author: 'Dimitri P. Bertsekas',
+    category: '经典理论',
+    type: 'book',
+    tags: ['最优控制', 'RL源头'],
+  },
+  {
+    title: 'Markov Decision Processes: Discrete Stochastic Dynamic Programming',
+    author: 'Martin L. Puterman',
+    category: '数学基础',
+    type: 'book',
+    tags: ['MDP天花板', '博士级别'],
+  },
+  {
+    title: 'Convex Optimization',
+    author: 'Stephen Boyd, Lieven Vandenberghe',
+    category: '数学基础',
+    type: 'book',
+    tags: ['凸优化', '底层原理'],
+  },
+  {
+    title: 'Numerical Optimization',
+    author: 'Jorge Nocedal & Stephen J. Wright',
+    category: '数学基础',
+    type: 'book',
+    tags: ['数值优化', '算法基石'],
+  },
+  {
+    title: 'Linear Algebra and Its Applications',
+    author: 'Gilbert Strang',
+    category: '数学基础',
+    type: 'book',
+    tags: ['线性代数', 'MIT神课'],
+  },
+
   // 工程落地
-  { title: '强化学习实战：Python 入门', author: '刘建平', category: '工程实践', type: 'doc', tags: ['代码解析', '快速上手'] },
-  { title: 'Hands-On Reinforcement Learning with Python', author: 'Sudharsan Ravichandiran', category: '工程实践', type: 'doc', tags: ['实战导向'] },
-  { title: 'OpenAI SpinningUp 官方文档', author: 'OpenAI', category: '开源框架', type: 'doc', tags: ['核心算法', '源码剖析'] },
-  { title: 'Stable Baselines3 / CleanRL / Tianshou Docs', author: 'Open Source Community', category: '开源框架', type: 'doc', tags: ['强化学习库', '工业级'] },
-  
+  {
+    title: '强化学习实战：Python 入门',
+    author: '刘建平',
+    category: '工程实践',
+    type: 'doc',
+    tags: ['代码解析', '快速上手'],
+  },
+  {
+    title: 'Hands-On Reinforcement Learning with Python',
+    author: 'Sudharsan Ravichandiran',
+    category: '工程实践',
+    type: 'doc',
+    tags: ['实战导向'],
+  },
+  {
+    title: 'OpenAI SpinningUp 官方文档',
+    author: 'OpenAI',
+    category: '开源框架',
+    type: 'doc',
+    tags: ['核心算法', '源码剖析'],
+  },
+  {
+    title: 'Stable Baselines3 / CleanRL / Tianshou Docs',
+    author: 'Open Source Community',
+    category: '开源框架',
+    type: 'doc',
+    tags: ['强化学习库', '工业级'],
+  },
+
   // 经典论文（学术高度）
-  { title: 'Human-level control through deep reinforcement learning (DQN)', author: 'Mnih et al. (Nature 2015)', category: '经典论文', type: 'paper', tags: ['RL+DL', '里程碑'] },
-  { title: 'Proximal Policy Optimization Algorithms (PPO)', author: 'Schulman et al. (OpenAI 2017)', category: '经典算法', type: 'paper', tags: ['目前主流', 'ChatGPT基石'] },
-  { title: 'Continuous control with deep reinforcement learning (DDPG)', author: 'Lillicrap et al. (ICLR 2016)', category: '经典算法', type: 'paper', tags: ['Actor-Critic', '连续动作'] },
-  { title: 'Trust Region Policy Optimization (TRPO)', author: 'Schulman et al. (ICML 2015)', category: '经典算法', type: 'paper', tags: ['信赖域', '单调递增'] },
-  { title: 'Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning (SAC)', author: 'Haarnoja et al. (ICML 2018)', category: '经典算法', type: 'paper', tags: ['最大熵', '样本效率'] },
-  { title: 'Multi-Agent Actor-Critic for Mixed Cooperative-Competitive Environments (MADDPG)', author: 'Lowe et al. (NIPS 2017)', category: '经典论文', type: 'paper', tags: ['多智能体', 'MARL'] }
+  {
+    title: 'Human-level control through deep reinforcement learning (DQN)',
+    author: 'Mnih et al. (Nature 2015)',
+    category: '经典论文',
+    type: 'paper',
+    tags: ['RL+DL', '里程碑'],
+  },
+  {
+    title: 'Proximal Policy Optimization Algorithms (PPO)',
+    author: 'Schulman et al. (OpenAI 2017)',
+    category: '经典算法',
+    type: 'paper',
+    tags: ['目前主流', 'ChatGPT基石'],
+  },
+  {
+    title: 'Continuous control with deep reinforcement learning (DDPG)',
+    author: 'Lillicrap et al. (ICLR 2016)',
+    category: '经典算法',
+    type: 'paper',
+    tags: ['Actor-Critic', '连续动作'],
+  },
+  {
+    title: 'Trust Region Policy Optimization (TRPO)',
+    author: 'Schulman et al. (ICML 2015)',
+    category: '经典算法',
+    type: 'paper',
+    tags: ['信赖域', '单调递增'],
+  },
+  {
+    title: 'Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning (SAC)',
+    author: 'Haarnoja et al. (ICML 2018)',
+    category: '经典算法',
+    type: 'paper',
+    tags: ['最大熵', '样本效率'],
+  },
+  {
+    title: 'Multi-Agent Actor-Critic for Mixed Cooperative-Competitive Environments (MADDPG)',
+    author: 'Lowe et al. (NIPS 2017)',
+    category: '经典论文',
+    type: 'paper',
+    tags: ['多智能体', 'MARL'],
+  },
 ]
 
 // 模拟无限循环的大型数据库 (生成约150条数据，满足10页以上的分页需求)
@@ -148,41 +340,92 @@ const generateLargeDatabase = () => {
     const loopData = baseKnowledgeData.map((item, index) => ({
       ...item,
       // 稍微改动一点ID确保key唯一
-      id: `${i}-${index}`
+      id: `${i}-${index}`,
     }))
     largeData = largeData.concat(loopData)
   }
   return largeData
 }
 
-const allData = generateLargeDatabase()
+const allData = ref(generateLargeDatabase())
 
 // 分页逻辑
+const searchQuery = ref('')
+const filteredData = computed(() => {
+  const query = searchQuery.value.trim().toLowerCase()
+  if (!query) return allData.value
+  
+  return allData.value.filter(item => 
+    item.title.toLowerCase().includes(query) ||
+    item.author.toLowerCase().includes(query) ||
+    item.category.toLowerCase().includes(query) ||
+    item.tags.some(tag => tag.toLowerCase().includes(query))
+  )
+})
+
+// 当用户输入搜索词时，自动把页码切回第一页
+watch(searchQuery, () => {
+  currentPage.value = 1
+})
+
+// 3. 动态计算分页参数（基于过滤后的数据 filteredData）
 const currentPage = ref(1)
 const pageSize = 12
-const totalItems = allData.length
-const totalPages = Math.ceil(totalItems / pageSize)
+const totalItems = computed(() => filteredData.value.length)
+const totalPages = computed(() => Math.ceil(totalItems.value / pageSize) || 1)
 const contentContainer = ref(null)
 
 const paginatedData = computed(() => {
   const start = (currentPage.value - 1) * pageSize
   const end = start + pageSize
-  return allData.slice(start, end)
+  return filteredData.value.slice(start, end)
 })
+
+// 4. 导入文献逻辑
+const fileInputRef = ref(null)
+
+const triggerImport = () => {
+  fileInputRef.value?.click()
+}
+
+const handleFileImport = (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  // 模拟将上传的文件组装成一条文献记录
+  const newDocument = {
+    id: `upload-${Date.now()}`,
+    title: file.name.replace(/\.[^/.]+$/, ""), // 自动去掉文件后缀作为标题
+    author: '本地上传',
+    category: '工程实践',
+    type: file.name.endsWith('.pdf') ? 'paper' : 'doc',
+    tags: ['最新导入', '本地']
+  }
+
+  // 插入到总数据的最前面
+  allData.value.unshift(newDocument)
+  
+  // 重置状态：清空搜索框、回到第一页，以便用户立刻看到新导入的文献
+  searchQuery.value = ''
+  currentPage.value = 1
+  event.target.value = '' // 清空 input 防止重复传同名文件失效
+  
+  ElMessage.success(`成功导入文献：${file.name}`)
+}
 
 // 分页器显示的页码计算
 const displayPages = computed(() => {
   const current = currentPage.value
-  const total = totalPages
+  const total = totalPages.value
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
-  
+
   if (current <= 4) return [1, 2, 3, 4, 5, '...', total]
   if (current >= total - 3) return [1, '...', total - 4, total - 3, total - 2, total - 1, total]
   return [1, '...', current - 1, current, current + 1, '...', total]
 })
 
 const changePage = (page) => {
-  if (page >= 1 && page <= totalPages) {
+  if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
     // 切换页面时回到顶部
     if (contentContainer.value) {
@@ -194,12 +437,12 @@ const changePage = (page) => {
 // 分类样式映射
 const getCategoryClass = (category) => {
   const map = {
-    '经典理论': 'badge-theory',
-    '经典算法': 'badge-algorithm',
-    '数学基础': 'badge-math',
-    '工程实践': 'badge-engineering',
-    '开源框架': 'badge-framework',
-    '经典论文': 'badge-paper'
+    经典理论: 'badge-theory',
+    经典算法: 'badge-algorithm',
+    数学基础: 'badge-math',
+    工程实践: 'badge-engineering',
+    开源框架: 'badge-framework',
+    经典论文: 'badge-paper',
   }
   return map[category] || 'badge-default'
 }
@@ -222,7 +465,8 @@ const getIcon = (type) => {
   display: flex;
   flex-direction: column;
   background-color: #f8f9fa; /* 更偏向学术界界面的冷灰底色 */
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
 }
 
 /* 顶部栏 */
@@ -256,7 +500,8 @@ const getIcon = (type) => {
 }
 
 .back-btn:hover {
-  color: #F2D850;
+  background-color: #f0f0f0;
+  color: #333;
 }
 
 .title-wrapper {
@@ -350,14 +595,15 @@ const getIcon = (type) => {
   background: #ffffff;
   border: 1px solid #e1e4e8;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(27,31,35,0.04);
+  box-shadow: 0 1px 3px rgba(27, 31, 35, 0.04);
   display: flex;
   flex-direction: column;
   min-width: 1000px; /* 防止过分挤压 */
 }
 
 /* CSS Grid 控制列宽 */
-.list-header, .list-row {
+.list-header,
+.list-row {
   display: grid;
   grid-template-columns: 3.5fr 2fr 1.5fr 2.5fr 1fr;
   align-items: center;
@@ -440,13 +686,41 @@ const getIcon = (type) => {
   border: 1px solid transparent;
 }
 
-.badge-theory { background: #e6f7ff; color: #096dd9; border-color: #91d5ff; }
-.badge-algorithm { background: #fff0f6; color: #c41d7f; border-color: #ffadd2; }
-.badge-math { background: #f9f0ff; color: #531dab; border-color: #d3adf7; }
-.badge-engineering { background: #fcffe6; color: #389e0d; border-color: #e2f0a8; }
-.badge-framework { background: #e6ffed; color: #22863a; border-color: #8ed081; }
-.badge-paper { background: #fff1f0; color: #cf1322; border-color: #ffa39e; }
-.badge-default { background: #f3f4f6; color: #4b5563; border-color: #d1d5db; }
+.badge-theory {
+  background: #e6f7ff;
+  color: #096dd9;
+  border-color: #91d5ff;
+}
+.badge-algorithm {
+  background: #fff0f6;
+  color: #c41d7f;
+  border-color: #ffadd2;
+}
+.badge-math {
+  background: #f9f0ff;
+  color: #531dab;
+  border-color: #d3adf7;
+}
+.badge-engineering {
+  background: #fcffe6;
+  color: #389e0d;
+  border-color: #e2f0a8;
+}
+.badge-framework {
+  background: #e6ffed;
+  color: #22863a;
+  border-color: #8ed081;
+}
+.badge-paper {
+  background: #fff1f0;
+  color: #cf1322;
+  border-color: #ffa39e;
+}
+.badge-default {
+  background: #f3f4f6;
+  color: #4b5563;
+  border-color: #d1d5db;
+}
 
 /* 标签列 */
 .col-tags {
@@ -487,15 +761,20 @@ const getIcon = (type) => {
   color: #d73a49;
   border-color: #d73a49;
 }
-.read-btn:hover { background: #d73a49; color: white; }
+.read-btn:hover {
+  background: #d73a49;
+  color: white;
+}
 
 .code-btn {
   color: #24292e;
   border-color: #e1e4e8;
   background: #fafbfc;
 }
-.code-btn:hover { background: #f3f4f6; border-color: #d1d5db; }
-
+.code-btn:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
 
 /* 分页器 */
 .pagination {

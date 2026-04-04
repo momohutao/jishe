@@ -3,11 +3,20 @@
     <!-- 顶部导航和分类 Tab -->
     <header class="tpl-header">
       <div class="header-top">
-        <button class="back-btn" @click="goBack">◀ 返回工作台</button>
+        <button class="back-btn" @click="goBack">    <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            stroke="currentColor"
+            stroke-width="2"
+            fill="none"
+          >
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg> 返回对话</button>
       </div>
       <div class="tab-list">
-        <div 
-          v-for="tab in tabs" 
+        <div
+          v-for="tab in tabs"
           :key="tab"
           :class="['tab-item', { active: currentTab === tab }]"
           @click="currentTab = tab"
@@ -24,7 +33,6 @@
     <!-- 模板网格内容区 -->
     <div class="tpl-content">
       <div class="tpl-grid">
-        
         <!-- 特殊卡片 1：上传 PPTX -->
         <div class="tpl-card special-card">
           <div class="special-cover">
@@ -45,15 +53,15 @@
         <div class="tpl-card" v-for="tpl in filteredTemplates" :key="tpl.id">
           <div class="tpl-cover-wrapper">
             <!-- 模板封面图 -->
-            <img :src="tpl.cover" class="tpl-cover" :alt="tpl.title">
-            
+            <img :src="tpl.cover" class="tpl-cover" :alt="tpl.title" />
+
             <!-- 悬浮遮罩层 (Hover Mask) -->
             <div class="hover-mask">
               <button class="use-btn" @click="useTemplate(tpl)">使用模板</button>
               <button class="preview-btn" title="预览" @click="previewTemplate(tpl)">👁️</button>
             </div>
           </div>
-          
+
           <!-- 模板信息 -->
           <div class="tpl-info">
             <h4 class="tpl-title">{{ tpl.title }}</h4>
@@ -63,7 +71,6 @@
             </div>
           </div>
         </div>
-
       </div>
     </div>
   </div>
@@ -79,7 +86,16 @@ const goBack = () => {
   router.push('/chat')
 }
 
-const tabs = ['全部模板', '创意与设计', '通用', '营销增长', '产品调研', '市场推广', '学习与成长', '求职发展']
+const tabs = [
+  '全部模板',
+  '创意与设计',
+  '通用',
+  '营销增长',
+  '产品调研',
+  '市场推广',
+  '学习与成长',
+  '求职发展',
+]
 const currentTab = ref('全部模板')
 
 // 👇 【解答你的问题：真实的 PPT 模板数据如何模拟？】
@@ -90,39 +106,43 @@ const templates = ref([
     title: 'Technology Data Report',
     category: '通用',
     uses: 996,
-    cover: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80',
-    fileUrl: '/mock-ppts/tech-report.pptx' // 真实使用时，将真实的 pptx 文件放在 public/mock-ppts 目录下
+    cover:
+      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80',
+    fileUrl: '/mock-ppts/tech-report.pptx', // 真实使用时，将真实的 pptx 文件放在 public/mock-ppts 目录下
   },
   {
     id: 2,
     title: 'YouTube Thumbnail & Video Hook',
     category: '创意与设计',
     uses: '2.3w',
-    cover: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=600&q=80',
-    fileUrl: '/mock-ppts/youtube-style.pptx'
+    cover:
+      'https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=600&q=80',
+    fileUrl: '/mock-ppts/youtube-style.pptx',
   },
   {
     id: 3,
     title: 'The Intelligence Age (AI 主题)',
     category: '学习与成长',
     uses: '4,025',
-    cover: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=600&q=80',
-    fileUrl: '/mock-ppts/ai-theme.pptx'
+    cover:
+      'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=600&q=80',
+    fileUrl: '/mock-ppts/ai-theme.pptx',
   },
   {
     id: 4,
     title: 'White Noise Webpage Design',
     category: '创意与设计',
     uses: '3,542',
-    cover: 'https://images.unsplash.com/photo-1497215848147-3801f60045e7?auto=format&fit=crop&w=600&q=80',
-    fileUrl: '/mock-ppts/white-noise.pptx'
-  }
+    cover:
+      'https://images.unsplash.com/photo-1497215848147-3801f60045e7?auto=format&fit=crop&w=600&q=80',
+    fileUrl: '/mock-ppts/white-noise.pptx',
+  },
 ])
 
 // 根据顶部 Tab 过滤
 const filteredTemplates = computed(() => {
   if (currentTab.value === '全部模板') return templates.value
-  return templates.value.filter(t => t.category === currentTab.value)
+  return templates.value.filter((t) => t.category === currentTab.value)
 })
 
 // 点击使用模板
@@ -158,9 +178,16 @@ const previewTemplate = (tpl) => {
 }
 
 .back-btn {
-  background: none; border: none; font-size: 14px; color: #666; cursor: pointer;
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
 }
-.back-btn:hover { color: #ffe878; }
+.back-btn:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
 
 .tab-list {
   display: flex;
@@ -184,12 +211,20 @@ const previewTemplate = (tpl) => {
 }
 
 .tab-item.active::after {
-  content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px;
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
   background-color: #333;
 }
 
 .tab-divider {
-  width: 1px; height: 16px; background-color: #ddd; margin: 0 8px;
+  width: 1px;
+  height: 16px;
+  background-color: #ddd;
+  margin: 0 8px;
 }
 
 .my-tpl {
@@ -217,7 +252,8 @@ const previewTemplate = (tpl) => {
 
 /* 1. 特殊卡片 (上传/新建) */
 .special-card {
-  display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 .special-cover {
   height: 180px;
@@ -231,15 +267,31 @@ const previewTemplate = (tpl) => {
   transition: box-shadow 0.2s;
 }
 .special-card:hover .special-cover {
-  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 .icon-circle {
-  width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  font-size: 28px; font-weight: bold;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: bold;
 }
-.ppt-icon { background: #ffe8e6; color: #ff4d4f; }
-.add-icon { background: #e6f0ff; color: #1677ff; }
-.special-title { font-size: 15px; color: #333; text-align: left; }
+.ppt-icon {
+  background: #ffe8e6;
+  color: #ff4d4f;
+}
+.add-icon {
+  background: #e6f0ff;
+  color: #1677ff;
+}
+.special-title {
+  font-size: 15px;
+  color: #333;
+  text-align: left;
+}
 
 /* 2. 真实模板卡片 & 悬浮遮罩 (核心功能) */
 .tpl-cover-wrapper {
@@ -252,7 +304,10 @@ const previewTemplate = (tpl) => {
 }
 
 .tpl-cover {
-  width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
 }
 
 .tpl-card:hover .tpl-cover {
@@ -262,7 +317,10 @@ const previewTemplate = (tpl) => {
 /* 遮罩层 UI */
 .hover-mask {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background: rgba(0, 0, 0, 0.65); /* 半透明黑底 */
   display: flex;
   align-items: center;
@@ -278,21 +336,54 @@ const previewTemplate = (tpl) => {
 
 /* 遮罩层上的按钮 */
 .use-btn {
-  background: #333; color: white; border: none; padding: 8px 20px; border-radius: 20px;
-  font-size: 14px; cursor: pointer; transition: background 0.2s;
-}
-.use-btn:hover { background: #000; }
-
-.preview-btn {
-  background: rgba(255, 255, 255, 0.2); color: white; border: none; 
-  width: 36px; height: 36px; border-radius: 50%; font-size: 16px; 
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  background: #333;
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: pointer;
   transition: background 0.2s;
 }
-.preview-btn:hover { background: rgba(255, 255, 255, 0.4); }
+.use-btn:hover {
+  background: #000;
+}
+
+.preview-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+.preview-btn:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
 
 /* 模板信息文字 */
-.tpl-title { margin: 0 0 6px 0; font-size: 15px; color: #333; }
-.tpl-meta { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #999; }
-.tpl-tag { background: #f5f5f5; padding: 2px 6px; border-radius: 4px; color: #666; }
+.tpl-title {
+  margin: 0 0 6px 0;
+  font-size: 15px;
+  color: #333;
+}
+.tpl-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #999;
+}
+.tpl-tag {
+  background: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #666;
+}
 </style>

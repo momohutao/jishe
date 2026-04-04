@@ -64,7 +64,7 @@
           </div>
           <!-- 悬浮操作菜单 -->
           <div class="file-actions">
-            <button class="action-btn" title="引用到对话">💬</button>
+            <button class="action-btn" title="引用到对话" @click="quoteToChat(file)">💬</button>
             <button class="action-btn" title="预览文件">👁️</button>
             <button class="action-btn" title="删除">🗑️</button>
           </div>
@@ -96,7 +96,15 @@ const getFileIcon = (type) => {
   return iconMap[type] || '📁'
 }
 const activeTab = ref('mine')
-
+// 引用文件到聊天界面
+const quoteToChat = (file) => {
+  router.push({
+    path: '/chat', // 确保这里是你 ChatView 真实的路由路径
+    query: {
+      quoteFileName: file.name // 把文件名作为参数带过去
+    }
+  })
+}
 // 模拟 A04 赛题相关的本地知识库文件数据 (10个左右)
 const fileList = ref([
   {
@@ -104,15 +112,15 @@ const fileList = ref([
     name: 'A04_多模态AI互动式教学智能体赛题.pdf',
     type: 'pdf',
     size: '2.4 MB',
-    date: '2023-10-24',
+    date: '2026-02-24',
     category: 'mine',
   },
   {
     id: 2,
-    name: '锐捷网络_ICT基础设施解决方案.pdf',
+    name: 'ICT基础设施解决方案.pdf',
     type: 'pdf',
     size: '5.1 MB',
-    date: '2023-10-25',
+    date: '2026-02-25',
     category: 'mine',
   },
   {
@@ -120,7 +128,7 @@ const fileList = ref([
     name: '第一章_人工智能发展史教案.word',
     type: 'word',
     size: '1.2 MB',
-    date: '2023-10-26',
+    date: '2026-02-26',
     category: 'ai',
   }, // 设为 ai
   {
@@ -128,7 +136,7 @@ const fileList = ref([
     name: '深度学习算法核心知识点梳理.ppt',
     type: 'ppt',
     size: '8.5 MB',
-    date: '2023-10-26',
+    date: '2026-02-26',
     category: 'ai',
   }, // 设为 ai
   {
@@ -136,7 +144,7 @@ const fileList = ref([
     name: '云课堂多模态交互演示素材.video',
     type: 'video',
     size: '45.0 MB',
-    date: '2023-10-27',
+    date: '2026-02-27',
     category: 'mine',
   },
   {
@@ -144,7 +152,7 @@ const fileList = ref([
     name: '大模型检索增强RAG技术白皮书.pdf',
     type: 'pdf',
     size: '3.6 MB',
-    date: '2023-10-28',
+    date: '2026-02-28',
     category: 'mine',
   },
   {
@@ -152,7 +160,7 @@ const fileList = ref([
     name: '教学意图理解与知识融合模块设计.word',
     type: 'word',
     size: '890 KB',
-    date: '2023-10-29',
+    date: '2026-02-29',
     category: 'mine',
   },
   {
@@ -160,7 +168,7 @@ const fileList = ref([
     name: '数字人教师授课测试片段.video',
     type: 'video',
     size: '120 MB',
-    date: '2023-10-29',
+    date: '2026-02-29',
     category: 'mine',
   },
   {
@@ -168,7 +176,7 @@ const fileList = ref([
     name: 'AI辅助教学工具市场调研数据.excel',
     type: 'excel',
     size: '150 KB',
-    date: '2023-10-30',
+    date: '2026-02-30',
     category: 'mine',
   },
   {
@@ -176,9 +184,33 @@ const fileList = ref([
     name: '最终提交_项目演示与PPT生成结果.video',
     type: 'video',
     size: '250 MB',
-    date: '2023-10-31',
+    date: '2026-02-31',
     category: 'mine',
-  }, // 视情况可改为 ai
+  },  
+  {
+    id: 11,
+    name: 'Attention Is All You Need.pdf',
+    type: 'pdf',
+    size: '250 MB',
+    date: '2026-02-31',
+    category: 'mine',
+  },  
+  {
+    id: 12,
+    name: '2026人工智能白皮书.pdf',
+    type: 'pdf',
+    size: '250 MB',
+    date: '2026-02-31',
+    category: 'mine',
+  },  
+  {
+    id: 13,
+    name: '市场调研数据.xlsx',
+    type: 'excel',
+    size: '250 MB',
+    date: '2026-02-31',
+    category: 'mine',
+  },  
 ])
 const filteredList = computed(() => {
   return fileList.value.filter((file) => file.category === activeTab.value)
@@ -422,11 +454,11 @@ const filteredList = computed(() => {
 }
 
 .tab-item:hover {
-  color: #F2D850;
+  color: #ADE0A2;
 }
 
 .tab-item.active {
-  color: #F2D850;
+  color: #ADE0A2;
   font-weight: 600;
 }
 
@@ -438,7 +470,7 @@ const filteredList = computed(() => {
   left: 0;
   width: 100%;
   height: 3px;
-  background-color: #F2D850;
+  background-color: #ADE0A2;
   border-radius: 3px;
 }
 </style>

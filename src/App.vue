@@ -1,14 +1,11 @@
 <template>
   <div id="app">
-    <!-- 导航栏：固定顶部 -->
     <header class="navbar">
-      <!-- 左侧 Logo 和项目名称（点击回到主页） -->
       <router-link to="/" class="logo">
         <span class="logo-icon"><img src="./assets/images/star.png" alt="" /></span>
         <span class="text">灵构·智课</span>
       </router-link>
 
-      <!-- 右侧导航链接 -->
       <nav class="nav-links">
         <router-link to="/ai-slide">AI 幻灯片</router-link>
         <router-link to="/ai-doc">AI 文档</router-link>
@@ -16,13 +13,24 @@
       </nav>
     </header>
 
-    <!-- 路由组件渲染区域，添加上边距避免被固定导航栏遮挡 -->
     <main>
-      <router-view />
-    </main>
+  <router-view v-slot="{ Component }">
+    <keep-alive>
+      <component 
+        :is="Component" 
+        v-if="$route.meta.keepAlive" 
+        :key="$route.name"  
+      /> </keep-alive>
+
+    <component 
+      :is="Component" 
+      v-if="!$route.meta.keepAlive" 
+      :key="$route.fullPath" 
+    />
+  </router-view>
+</main>
   </div>
 </template>
-
 <script>
 export default {
   name: 'App',
@@ -63,7 +71,7 @@ body {
   width: 100%;
   z-index: 1000;
 }
-
+ 
 /* Logo 区域（作为链接） */
 .logo {
   display: flex;

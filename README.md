@@ -1,6 +1,6 @@
 # ClassWave-s-front-end
 
-电子科技大学服创项目《ClassWave织课》前端开发
+电子科技大学计设项目《ClassWave智课》前端开发
 
 2.BigDifference部分的基本框架已经全部完成，还差**嵌入视频**
 

@@ -2,7 +2,7 @@
 <template>
   <div class="big-different">
     <div class="video"><video src="" class="total" controls></video></div>
-    <div class="text">ClassWeave织课，大不同</div>
+    <div class="text">灵构・智课，大不同</div>
     <!-- different 盒子：放入 left.vue 和 right.vue -->
     <div class="different">
       <!-- 第一个 Left 组件：幻灯片，完全不同的猛兽 -->

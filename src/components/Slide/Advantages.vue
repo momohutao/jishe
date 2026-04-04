@@ -7,7 +7,7 @@
           <thead>
             <tr>
               <th>功能</th>
-              <th class="name">ClassWeave织课</th>
+              <th class="name">灵构・智课</th>
               <th>其他工具</th>
             </tr>
           </thead>
@@ -76,7 +76,7 @@
         </table>
       </div>
     </div>
-    <div class="title">为何 ClassWeave织课 是史上最佳的 AI 幻灯片工具</div>
+    <div class="title">为何 灵构・智课 是史上最佳的 AI 幻灯片工具</div>
 
     <!-- 卡片区块：使用了 left/right 组件，并通过插槽传入自定义内容 -->
     <left>
@@ -88,7 +88,7 @@
       </template>
       <template #content>
         <p class="custom-content">
-          AI 生成的幻灯片不应让你局限于固定布局。ClassWeave织课 让你可以像在 PowerPoint
+          AI 生成的幻灯片不应让你局限于固定布局。灵构・智课 让你可以像在 PowerPoint
           中一样编辑每个元素。你可以进行拖动、调整大小、替换视觉元素、调整网格等操作。
         </p>
       </template>
@@ -103,7 +103,7 @@
       </template>
       <template #content>
         <p class="custom-content">
-          ClassWeave织课 不仅兼容
+          灵构・智课 不仅兼容
           PowerPoint，还能生成完美匹配的幻灯片。布局、间距、字体、图表和颜色都能得以保留。无需担心格式损坏或重新编辑，每次都能生成完美的
           PPT 文件。
         </p>
@@ -119,7 +119,7 @@
       </template>
       <template #content>
         <p class="custom-content">
-          ClassWeave织课
+          灵构・智课
           能精准贴合你的设计系统和演示模板。它采用一致的排版、对齐的网格和品牌配色方案。幻灯片就像手工制作的一样，即使在编辑后也始终与你的模板保持一致。
         </p>
       </template>
@@ -134,7 +134,7 @@
       </template>
       <template #content>
         <p class="custom-content">
-          ClassWeave织课 可以生成真实且可编辑的 PPT
+          灵构・智课 可以生成真实且可编辑的 PPT
           图表。无需调整布局，即可更新数值、重新设置颜色和切换图表类型。数据始终精确，幻灯片保持简洁，编辑轻松不费力。
         </p>
       </template>

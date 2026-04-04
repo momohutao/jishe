@@ -174,9 +174,9 @@ const closePreview = () => {
 // ==================== 数字人语音讲解 ====================
 /** 每页课件对应的讲解文案 */
 const lectureNotes: Record<number, string> = {
-  1: '我们先从当前这一页开始讲解本次课件的核心主题。',
-  2: '这一页通常会给出重点概念，建议结合标题和关键词一起理解。',
-  3: '接下来这页更适合配合案例来讲，我会帮你抓重点。',
+  1: '同学们，今天我们要学习的主题是 Transformer。这节课我们主要有三个目标。',
+  2: '这是一类在自然语言处理、机器翻译，乃至后来的大模型中都非常核心的模型结构。',
+  3: '这节课我们主要有三个目标。',
 }
 const dhVideoRef = ref<HTMLVideoElement | null>(null)
 const isDigitalHumanActive = ref(false)

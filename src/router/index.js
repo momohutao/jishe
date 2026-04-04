@@ -33,7 +33,10 @@ const router = createRouter({
     {
       path: '/chat',
       name: 'chat',
-      component: ChatView
+      component: ChatView,
+      meta: { 
+      keepAlive: true 
+    }
     },
     {
       path: '/knowledge',

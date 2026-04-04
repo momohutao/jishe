@@ -35,25 +35,110 @@
       <section class="menu-section">
         <h4 class="section-title interactive-title">
           <div class="title-left">
-            <!-- 默认显示的黑色图标 -->
             <img src="../assets/images/历史记录.png" alt="" class="icon-img icon-default" />
-            <!-- 悬浮时显示的蓝色图标 -->
             <img src="../assets/images/历史记录2.png" alt="" class="icon-img icon-hover" />
             <span class="title-text">历史记录</span>
           </div>
         </h4>
         <div class="list-items">
           <div
-            class="item"
+            class="item history-item-wrapper"
             v-for="item in history"
             :key="item.id"
             @click="$emit('load-history', item)"
           >
-            {{ item.title }}
+            <!-- 文本区域 -->
+            <span class="item-text" :title="item.title">{{ item.title }}</span>
+
+            <!-- 新增：右侧三个点操作区 -->
+            <div
+              class="more-action-box"
+              :class="{ 'is-active': activeMenuId === item.id }"
+              @click.stop
+            >
+              <button class="more-action-btn" @click.stop="toggleHistoryMenu(item.id, $event)">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                  <circle cx="5" cy="12" r="1.5"></circle>
+                  <circle cx="12" cy="12" r="1.5"></circle>
+                  <circle cx="19" cy="12" r="1.5"></circle>
+                </svg>
+              </button>
+
+              <Teleport to="body">
+                <div
+                  class="action-menu-dropdown"
+                  v-if="activeMenuId === item.id"
+                  :style="{ top: menuPosition.y + 'px', left: menuPosition.x + 'px' }"
+                  @click.stop
+                >
+                  <div class="menu-item" @click.stop="handleMenuClick('top', item)">
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="14"
+                      height="14"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      fill="none"
+                    >
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                      <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    置顶
+                  </div>
+
+                  <div class="menu-item" @click.stop="handleMenuClick('rename', item)">
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="14"
+                      height="14"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      fill="none"
+                    >
+                      <path d="M12 20h9"></path>
+                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                    </svg>
+                    重命名
+                  </div>
+                  <div class="menu-item" @click.stop="handleMenuClick('report', item)">
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="14"
+                      height="14"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      fill="none"
+                    >
+                      <path
+                        d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                      ></path>
+                      <line x1="12" y1="9" x2="12" y2="13"></line>
+                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    举报
+                  </div>
+                  <div class="menu-item menu-danger" @click.stop="handleMenuClick('delete', item)">
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="14"
+                      height="14"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      fill="none"
+                    >
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path
+                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                      ></path>
+                    </svg>
+                    删除
+                  </div>
+                </div>
+              </Teleport>
+            </div>
           </div>
         </div>
       </section>
-
       <!-- 3. 项目 -->
       <section class="menu-section">
         <h4 class="section-title interactive-title" @click="goToLigong">
@@ -72,13 +157,12 @@
             v-for="(kb, index) in knowledgeBases"
             :key="index"
             @click.stop="toggleMention(kb)"
-         
           >
             <!-- 自定义勾选框：选中时显示黄色 @ -->
             <div class="mention-checkbox" :class="{ 'is-checked': kb.checked }">
               <span v-if="kb.checked">@</span>
             </div>
-            <span class="item-text"    @click="goToLigong">{{ kb.name }}</span>
+            <span class="item-text" @click="goToLigong">{{ kb.name }}</span>
           </div>
         </div>
       </section>
@@ -94,8 +178,8 @@
           <span class="enter-arrow">进入 ➔</span>
         </h4>
         <div class="list-items">
-          <div class="item">📖 2026人工智能白皮书.pdf</div>
-          <div class="item">📊 市场调研数据.xlsx</div>
+          <div class="item">2026人工智能白皮书.pdf</div>
+          <div class="item">市场调研数据.xlsx</div>
         </div>
       </section>
 
@@ -129,19 +213,78 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
+const activeMenuId = ref(null) // 记录当前打开菜单的项的 ID
+const menuPosition = ref({ x: 0, y: 0 }) // 新增：记录弹窗的绝对坐标
+// 点击三个点图标，切换显示菜单
+const toggleHistoryMenu = (id, event) => {
+  if (activeMenuId.value === id) {
+    activeMenuId.value = null // 如果已经打开，再次点击就关闭
+    return
+  }
 
+  // 获取当前点击的按钮在整个屏幕中的位置
+  const btnRect = event.currentTarget.getBoundingClientRect()
+
+  // 设置菜单出现的位置：按钮的右侧(加上一点间距)，以及跟按钮稍微顶部对齐
+  menuPosition.value = {
+    x: btnRect.right + 12, // 距离按钮右边缘再往右 12px
+    y: btnRect.top - 8, // 纵向上轻微往上提一点
+  }
+
+  activeMenuId.value = id
+}
+// 点击网页空白处，自动关闭悬浮菜单
+const closeAllMenus = () => {
+  activeMenuId.value = null
+}
+
+onMounted(() => {
+  document.addEventListener('click', closeAllMenus)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeAllMenus)
+})
+
+// 处理菜单内各项的点击
+const handleMenuClick = (action, item) => {
+  activeMenuId.value = null // 自动闭合菜单
+  if (action === 'delete') {
+    ElMessageBox.confirm(`确定要删除【${item.title}】吗？`, '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+      .then(() => {
+        emit('delete-history', item.id)
+        ElMessage.success('已删除') // 加上删除成功的提示
+      })
+      .catch(() => {
+        // 取消删除，不做任何事
+      })
+  } else if (action === 'top') {
+    emit('pin-history', item.id) // 👈 抛出置顶
+  } else if (action === 'rename') {
+    emit('rename-history', item) // 👈 抛出重命名
+  } else {
+    console.log(`点击了 ${action}`, item.title)
+  }
+}
 const goToKnowledge = () => {
   router.push('/knowledge')
 }
+
 const knowledgeBases = ref([
   { name: '理工大学人工智能专业知识库', checked: false },
   { name: '综合大学AI通识课程知识库', checked: false },
   { name: '实验小学AI启蒙教育知识库', checked: false },
-  { name: '实验中学科创人工智能知识库', checked: false }
+  { name: '实验中学科创人工智能知识库', checked: false },
 ])
+
 const toggleMention = (kb) => {
   kb.checked = !kb.checked
   if (kb.checked) {
@@ -150,19 +293,44 @@ const toggleMention = (kb) => {
     emit('mention', kb.name)
   }
 }
+
+// ================= 新增核心逻辑 =================
+// 1. 遍历知识库数组，把所有 checked 状态设为 false
+const resetKnowledgeBase = () => {
+  knowledgeBases.value.forEach((kb) => {
+    kb.checked = false
+  })
+}
+
+// 2. 暴露给父组件使用，父组件通过 ref 即可调用这个方法！
+defineExpose({
+  resetKnowledgeBase,
+})
+// ================================================
+
 defineProps({
   isOpen: Boolean,
   history: Array,
 })
 
-const emit = defineEmits(['toggle', 'logout', 'new-chat', 'load-history','mention'])
+const emit = defineEmits([
+  'toggle',
+  'logout',
+  'new-chat',
+  'load-history',
+  'mention',
+  'delete-history',
+  'pin-history', // 👈 新增置顶事件
+  'rename-history', // 👈 新增重命名事件
+])
 
 const handleLogout = () => {
   if (confirm('确定要退出登录吗？')) {
     emit('logout')
   }
 }
-const goToLigong=()=>{
+
+const goToLigong = () => {
   router.push('/ligong')
 }
 </script>
@@ -302,9 +470,7 @@ const goToLigong=()=>{
   color: #666;
   font-weight: normal;
   cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+
   display: flex; /* 新增 */
   align-items: center; /* 新增 */
   gap: 8px; /* 新增：勾选框和文字的间距 */
@@ -422,7 +588,7 @@ const goToLigong=()=>{
 }
 
 input:checked + .slider {
-  background-color: orange;
+  background-color: #b1e09e;
 }
 
 input:checked + .slider:before {
@@ -446,14 +612,14 @@ input:checked + .slider:before {
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
-  background-color: #ffe878;
+  background-color: #acdea3;
 }
 
 .new-chat-btn:hover {
-  background-color: #fed71a; /* 原为 #4096ff，悬浮时改为黄色 */
+  background-color: #d6f389; /* 原为 #4096ff，悬浮时改为黄色 */
   transform: translateY(-1px);
   /* 阴影颜色同步改为橙色半透明 */
-  box-shadow: 0 4px 12px rgba(255, 146, 28, 0.3);
+  box-shadow: 0 4px 12px rgba(81, 255, 28, 0.3);
 }
 
 .new-chat-btn:active {
@@ -464,5 +630,76 @@ input:checked + .slider:before {
 .plus-icon {
   font-size: 18px;
   font-weight: bold;
+}
+.history-item-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: 8px !important;
+}
+
+.more-action-box {
+  position: relative;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+/* 当鼠标悬浮在这一行，或者菜单已经打开时，保持三个点和菜单显示 */
+.history-item-wrapper:hover .more-action-box,
+.more-action-box.is-active {
+  opacity: 1;
+}
+
+/* --- 剩余的原样保留 --- */
+.more-action-btn {
+  background: transparent;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.more-action-btn:hover {
+  background: #e6e6e6;
+  color: #333;
+}
+
+.action-menu-dropdown {
+  position: fixed;
+  width: 110px;
+  background: #ffffff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  padding: 6px 0;
+  z-index: 99999; /* 层级拉满，保证盖住任何组件 */
+}
+.action-menu-dropdown .menu-item {
+  padding: 8px 16px;
+  font-size: 13px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.action-menu-dropdown .menu-item:hover {
+  background: #f5f5f5;
+}
+
+/* 删除按钮的危险颜色 */
+.action-menu-dropdown .menu-danger {
+  color: #ff4d4f;
+}
+
+.action-menu-dropdown .menu-danger svg {
+  stroke: #ff4d4f;
 }
 </style>

@@ -5,7 +5,7 @@
       <div class="footer-main">
         <!-- 左侧：品牌 -->
         <div class="brand-section">
-          <div class="brand">ClassWeave 织课</div>
+          <div class="brand">灵构・ 智课</div>
         </div>
 
         <!-- 右侧：三个栏目（全部居中） -->

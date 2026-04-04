@@ -2,6 +2,7 @@
   <div class="chat-app-layout">
     <!-- 左侧：历史对话侧边栏（可折叠） -->
     <SideBar
+      ref="sideBarRef" 
       :isOpen="isSidebarOpen"
       :history="historyList"
       @toggle="isSidebarOpen = !isSidebarOpen"
@@ -9,6 +10,9 @@
       @new-chat="startNewChat"
       @load-history="handleLoadHistory"
       @mention="handleMention"
+      @delete-history="handleDeleteHistory" 
+      @pin-history="handlePinHistory" 
+      @rename-history="handleRenameHistory"
     />
 
     <!-- 中间：AI 聊天对话区 -->
@@ -49,7 +53,7 @@
             <div class="content outline-card" v-if="msg.type === 'outline'">
               <div class="outline-header">
                 <div class="header-left">
-                  <span class="icon">📄</span>
+ 
                   <span class="title">内容大纲已生成</span>
                 </div>
                 <button class="download-word-btn" @click="downloadOutlineAsWord(msg.content)">
@@ -57,18 +61,15 @@
                 </button>
               </div>
 
-              <div class="outline-body">
-                <!-- contenteditable 让用户可以直接在这里微调 -->
+               <div class="outline-body">
+                <!-- 引入 v-html 渲染解析后的 Markdown -->
                 <div
                   class="outline-editor"
                   contenteditable="true"
-                  @blur="(e) => msg.content = (e.target as HTMLElement).innerText"
+                  v-html="parseMarkdown(msg.content)"
                 >
-                  <!-- 这里可以简单处理，或者引入 markdown-it 渲染 -->
-                  {{ msg.content }}
                 </div>
               </div>
-
               <div class="outline-footer">
                 <span class="tip"
                   >💡 提示：您可以直接修改上方文字，或在下方输入意见让 AI 调整。</span
@@ -77,50 +78,130 @@
             </div>
             <!-- 3. AI 需求确认表单卡片 (保留原有功能) -->
             <div class="content form-card" v-if="msg.type === 'form'">
-              <!-- ...（表单内容与之前完全一致，此处略写以节省篇幅，具体保持不变）... -->
-              <div class="form-group">
-                <h4>这份课件给谁讲？</h4>
-                <div class="radio-group">
-                  <label :class="{ active: msg.formData.audience === 'college' }">
-                    <input
-                      type="radio"
-                      v-model="msg.formData.audience"
-                      value="college"
-                      :disabled="msg.isSubmitted"
-                    />
-                    <span class="radio-icon"></span> 大学/研究生
-                  </label>
-                  <label :class="{ active: msg.formData.audience === 'corporate' }">
-                    <input
-                      type="radio"
-                      v-model="msg.formData.audience"
-                      value="corporate"
-                      :disabled="msg.isSubmitted"
-                    />
-                    <span class="radio-icon"></span> 小学生
-                  </label>
-                  <label :class="{ active: msg.formData.audience === 'student' }">
-                    <input
-                      type="radio"
-                      v-model="msg.formData.audience"
-                      value="student"
-                      :disabled="msg.isSubmitted"
-                    />
-                    <span class="radio-icon"></span> 中学生
-                  </label>
+              <!-- 第一步：受众确认 -->
+              <div v-if="msg.formType === 'audience'">
+                <div class="form-group">
+                  <h4>这份课件给谁讲？</h4>
+                  <div class="radio-group">
+                    <label :class="{ active: msg.formData.audience === 'college' }">
+                      <input
+                        type="radio"
+                        v-model="msg.formData.audience"
+                        value="college"
+                        :disabled="msg.isSubmitted"
+                      />
+                      <span class="radio-icon"></span> 本科生
+                    </label>
+                    <label :class="{ active: msg.formData.audience === 'student' }">
+                      <input
+                        type="radio"
+                        v-model="msg.formData.audience"
+                        value="student"
+                        :disabled="msg.isSubmitted"
+                      />
+                      <span class="radio-icon"></span> 中学生
+                    </label>
+                    <label :class="{ active: msg.formData.audience === 'corporate' }">
+                      <input
+                        type="radio"
+                        v-model="msg.formData.audience"
+                        value="corporate"
+                        :disabled="msg.isSubmitted"
+                      />
+                      <span class="radio-icon"></span> 小学生
+                    </label>
+                  </div>
+                </div>
+                <div class="form-actions">
+                  <button
+                    class="submit-form-btn"
+                    :disabled="msg.isSubmitted"
+                    @click="submitRequirements(msg)"
+                  >
+                    {{ msg.isSubmitted ? '已提交' : '提交' }}
+                  </button>
                 </div>
               </div>
-              <div class="form-actions">
-                <button
-                  class="submit-form-btn"
-                  :disabled="msg.isSubmitted"
-                  @click="submitRequirements(msg)"
-                >
-                  {{ msg.isSubmitted ? '已提交' : '提交' }}
-                </button>
+
+              <!-- 第二步：难度与时长确认 -->
+              <div v-if="msg.formType === 'details'">
+                <div class="form-group">
+                  <h4>请问课程的难度级别是？</h4>
+                  <div class="radio-group">
+                    <label :class="{ active: msg.formData.level === 'beginner' }">
+                      <input
+                        type="radio"
+                        v-model="msg.formData.level"
+                        value="beginner"
+                        :disabled="msg.isSubmitted"
+                      />
+                      <span class="radio-icon"></span> 零基础入门
+                    </label>
+                    <label :class="{ active: msg.formData.level === 'intermediate' }">
+                      <input
+                        type="radio"
+                        v-model="msg.formData.level"
+                        value="intermediate"
+                        :disabled="msg.isSubmitted"
+                      />
+                      <span class="radio-icon"></span> 核心进阶
+                    </label>
+                    <label :class="{ active: msg.formData.level === 'advanced' }">
+                      <input
+                        type="radio"
+                        v-model="msg.formData.level"
+                        value="advanced"
+                        :disabled="msg.isSubmitted"
+                      />
+                      <span class="radio-icon"></span> 深度专业探讨
+                    </label>
+                  </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px">
+                  <h4>预计讲解时长是多少？</h4>
+                  <div class="radio-group">
+                    <label :class="{ active: msg.formData.duration === '10min' }">
+                      <input
+                        type="radio"
+                        v-model="msg.formData.duration"
+                        value="10min"
+                        :disabled="msg.isSubmitted"
+                      />
+                      <span class="radio-icon"></span> 10分钟(简述)
+                    </label>
+                    <label :class="{ active: msg.formData.duration === '25min' }">
+                      <input
+                        type="radio"
+                        v-model="msg.formData.duration"
+                        value="25min"
+                        :disabled="msg.isSubmitted"
+                      />
+                      <span class="radio-icon"></span> 25分钟(标准)
+                    </label>
+                    <label :class="{ active: msg.formData.duration === '45min' }">
+                      <input
+                        type="radio"
+                        v-model="msg.formData.duration"
+                        value="45min"
+                        :disabled="msg.isSubmitted"
+                      />
+                      <span class="radio-icon"></span> 45分钟(长课)
+                    </label>
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <button
+                    class="submit-form-btn"
+                    :disabled="msg.isSubmitted"
+                    @click="submitDetailsForm(msg)"
+                  >
+                    {{ msg.isSubmitted ? '已提交，生成大纲中...' : '生成大纲' }}
+                  </button>
+                </div>
               </div>
             </div>
-
             <!-- 4. 文件卡片类型消息 (PPT 缩略图) -->
             <div
               class="content file-card"
@@ -293,21 +374,136 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, nextTick,onMounted,onActivated,watch,computed } from 'vue'
+import { useRoute,useRouter } from 'vue-router'
 import { saveAs } from 'file-saver' // 用于下载文件
 import PptPreview from '../components/PptPreview.vue'
 import SideBar from '../components/SideBar.vue'
 import ThinkingLogo from '../components/ThinkingLogo.vue'
 import { Document, Packer, Paragraph, TextRun } from 'docx'
+import { fetchPptTaskApi, generatePptApi } from '@/api/ppt.js' 
+import { useHistoryStore } from '@/stores/history' // 👈 引入你的 store
+
 // ==== 基础状态 ====
-const isSidebarOpen = ref(true) // 控制开关的状态
+
+const historyStore = useHistoryStore()
+const route = useRoute() 
+const TASK_POLL_INTERVAL = 2500
+const TASK_POLL_MAX_ATTEMPTS = 180
+const sleep = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms))
+const unwrapPayload = (payload: any) => payload?.data ?? payload ?? {}
+const extractTaskId = (payload: any) => {
+  const data = unwrapPayload(payload)
+  const pollUrl = data.pollUrl || data.poll_url || ''
+  const taskIdFromPollUrl = pollUrl ? String(pollUrl).split('/').pop() : ''
+  return (
+    data.taskId ||
+    data.task_id ||
+    data.mlTaskId ||
+    data.ml_job_id ||
+    taskIdFromPollUrl ||
+    data.id ||
+    ''
+  )
+}
+const handleQuoteParam = () => {
+  const quoteName = route.query.quoteFileName
+  if (quoteName) {
+    // 调用你现有的方法，把 @名字 填入输入框
+    handleMention(String(quoteName))
+
+    // 💡 关键：处理完后立刻抹掉 URL 里的参数，防止刷新页面重复触发
+    router.replace({ query: {} })
+  }
+}
+const checkQuoteParam = () => {
+  // 检查路由里有没有带 quoteFileName 参数过来
+  if (route.query.quoteFileName) {
+    const fileName = String(route.query.quoteFileName)
+    
+    // 稍微延迟一下，确保输入框的 DOM 已经加载完毕/渲染完毕
+    setTimeout(() => {
+      // 复用你原本就写好的 handleMention 方法
+      handleMention(fileName)
+      
+      // 消费完参数后，把 URL 里的参数抹掉，防止刷新页面时重复触发
+      const newQuery = { ...route.query }
+      delete newQuery.quoteFileName
+      router.replace({ query: newQuery })
+    }, 300)
+  }
+}
+
+// 2. 情况 A：页面第一次创建时执行
+onMounted(() => {
+  checkQuoteParam()
+})
+
+// 3. 情况 B：页面从别的路由切回来（被缓存唤醒）时执行
+onActivated(() => {
+  checkQuoteParam()
+})
+const normalizeTaskStatus = (payload: any) => {
+  const data = unwrapPayload(payload)
+  const result = data.result || data.output || data.fileInfo || data.file || {}
+  const merged = { ...data, ...result }
+  const status = String(merged.status || merged.taskStatus || merged.state || '').toUpperCase()
+
+  return {
+    raw: merged,
+    status,
+    title: merged.title || '',
+    fileName: merged.fileName || merged.title || merged.outputFileName || merged.name || '',
+    fileType: merged.fileType || merged.type || '',
+    fileId: merged.fileId || merged.outputFileId || '',
+    objectKey: merged.objectKey || merged.object_key || '',
+    bucketName: merged.bucketName || merged.bucket_name || '',
+    apiBaseUrl: merged.apiBaseUrl || merged.api_base_url || '',
+    userId: merged.userId || merged.user_id || '',
+    creatorId: merged.creatorId || merged.creator_id || '',
+    directDownloadUrl:
+      merged.downloadUrl || merged.directDownloadUrl || merged.url || '',
+  }
+}
+
+const pollTaskUntilFinished = async (taskId: string) => {
+  for (let attempt = 0; attempt < TASK_POLL_MAX_ATTEMPTS; attempt += 1) {
+    const response = await fetchPptTaskApi(taskId)
+    const taskData = normalizeTaskStatus(response)
+
+    if (['SUCCESS', 'SUCCEEDED', 'COMPLETED', 'DONE'].includes(taskData.status)) {
+      return {
+        ...taskData.raw,
+        title: taskData.title,
+        fileName: taskData.fileName,
+        fileType: taskData.fileType,
+        fileId: taskData.fileId,
+        objectKey: taskData.objectKey,
+        bucketName: taskData.bucketName,
+        apiBaseUrl: taskData.apiBaseUrl,
+        userId: taskData.userId,
+        creatorId: taskData.creatorId,
+        directDownloadUrl: taskData.directDownloadUrl,
+      }
+    }
+
+    if (['FAILED', 'ERROR', 'CANCELED', 'CANCELLED'].includes(taskData.status)) {
+      throw new Error(taskData.raw.message || 'PPT generation failed')
+    }
+
+    await sleep(TASK_POLL_INTERVAL)
+  }
+
+  throw new Error('PPT generation timed out')
+}
+const isSidebarOpen = ref(true)
 const router = useRouter()
 const currentPreviewPayload = ref<any | null>(null)
 const inputText = ref('')
 const chatListRef = ref<HTMLElement | null>(null)
 const editorRef = ref<HTMLElement | null>(null)
-
+const sideBarRef = ref<any>(null)
+const currentSessionId = ref(route.query.sessionId ? String(route.query.sessionId) : '')
 // 新增：监听 div 的输入事件，同步到你原本的 inputText 中
 const handleEditorInput = (e: Event) => {
   const target = e.target as HTMLElement
@@ -342,8 +538,30 @@ const onLogout = () => {
   router.push('/login')
 }
 
-const historyList = ref([{ id: 1, title: '人工智能发展史' }])
+// 1. 定义一个唯一的缓存 Key
+const HISTORY_STORAGE_KEY = 'ppt_ai_history_data'
 
+// 2. 初始化时尝试从硬盘读取数据，读取不到则给空数组
+const historyList = computed(() => historyStore.list)
+
+// 🚨 如果你之前有写死的数据（比如 ID:1 的那个），可以作为兜底：
+if (historyList.value.length === 0) {
+  historyList.value = [{ id: Date.now(), title: '人工智能发展史', messagesData: [] }]
+}
+const parseMarkdown = (text: string) => {
+  if (!text) return ''
+  return text
+    // 允许符号前面有空格，防止代码缩进导致的匹配失败
+    .replace(/^[ \t]*###[ \t]+(.*)$/gm, '<h3>$1</h3>')
+    .replace(/^[ \t]*##[ \t]+(.*)$/gm, '<h2>$1</h2>')
+    .replace(/^[ \t]*#[ \t]+(.*)$/gm, '<h1>$1</h1>')
+    .replace(/^[ \t]*-[ \t]+(.*)$/gm, '<li>$1</li>')
+    .replace(/^[ \t]*---[ \t]*$/gm, '<hr>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\r\n|\n/g, '<br>')
+    // 清理块级元素后面多余的换行
+    .replace(/(<\/h[1-3]>|<\/li>|<hr>)<br>/g, '$1')
+}
 const messages = ref<any[]>([
   {
     role: 'ai',
@@ -353,25 +571,8 @@ const messages = ref<any[]>([
   },
 ])
 
-// ==== 附件处理 (演示多模态) ====
-const mockOnlyOfficePreviewResponse = {
-  code: 0,
-  data: {
-    fileId: 'pptchapter2process',
-    fileName: '第二章 进程管理-融合第9章与12章.pptx',
-    objectKey: '第二章 进程管理-融合第9章与12章.pptx',
-    creatorId: 'u100',
-    bucketName: 'ppt-files',
-    apiBaseUrl: 'http://47.109.139.75:8080',
-    directDownloadUrl:
-      'http://47.109.139.75:9000/ppt-files/%E7%AC%AC%E4%BA%8C%E7%AB%A0%20%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86-%E8%9E%8D%E5%90%88%E7%AC%AC9%E7%AB%A0%E4%B8%8E12%E7%AB%A0.pptx?response-content-disposition=attachment%3B%20filename%3D%22%E7%AC%AC%E4%BA%8C%E7%AB%A0%20%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86-%E8%9E%8D%E5%90%88%E7%AC%AC9%E7%AB%A0%E4%B8%8E12%E7%AB%A0.pptx%22&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=minioadmin%2F20260317%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260317T094810Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=d81da2e4b1df77a774f0914a1da738638a8742f74e5b03de3662451b468e6f88',
-    mode: 'edit',
-    lang: 'zh-CN',
-    userId: 'u100',
-  },
-  message: '',
-}
-
+ 
+ 
 const pendingAttachments = ref<any[]>([])
 const fileInputRef = ref<HTMLInputElement | null>(null)
 let currentUploadType = 'pdf' // 记录当前希望上传的类型
@@ -477,10 +678,56 @@ const simulateVoiceInput = () => {
     isRecording.value = false
   }, 2500)
 }
+const buildGeneratePayload = (requestContext: any, formData: any) => {
+  const payload: Record<string, any> = {
+    audience: formData.audience,
+    prompt: String(requestContext.prompt || '').trim(),
+    attachments: (requestContext.attachments || []).map((attachment: any) => ({
+      type: attachment.type,
+      name: attachment.name,
+      fileId: attachment.fileId,
+      objectKey: attachment.objectKey,
+    })),
+  }
+
+  if (requestContext.templateId) {
+    payload.templateId = requestContext.templateId
+  }
+
+  if (requestContext.sessionId) {
+    payload.sessionId = requestContext.sessionId
+  }
+
+  return payload
+}
+const buildPreviewPayload = (taskData: any) => {
+  if (taskData.fileId) {
+    return {
+      fileId: taskData.fileId,
+      fileName: taskData.fileName || taskData.title,
+      objectKey: taskData.objectKey || taskData.fileName,
+      creatorId: taskData.creatorId || 'u100',
+      bucketName: taskData.bucketName || 'ppt-files',
+      apiBaseUrl: taskData.apiBaseUrl,
+      directDownloadUrl: taskData.directDownloadUrl,
+      mode: 'edit',
+      lang: 'zh-CN',
+      userId: taskData.userId || taskData.creatorId || 'u100',
+    }
+  }
+
+  if (taskData.directDownloadUrl) {
+    return {
+      fileName: taskData.fileName || taskData.title || 'generated.pptx',
+      directDownloadUrl: taskData.directDownloadUrl,
+    }
+  }
+
+  return null
+}
 
 // ==== 发送逻辑 ====
-const handleSend = () => {
-  
+const handleSend = async () => {
   if (!inputText.value.trim() && pendingAttachments.value.length === 0) return
 
   const userContent = inputText.value
@@ -490,65 +737,132 @@ const handleSend = () => {
 
   const thinkingIndex = messages.value.length
   messages.value.push({ role: 'ai', isThinking: true, content: '', type: 'text' })
-if (editorRef.value) {
-    editorRef.value.innerText = ''  // 清空页面显示
-    editorRef.value.innerHTML = ''   // 清空富文本内容
+  
+  if (editorRef.value) {
+    editorRef.value.innerText = ''
+    editorRef.value.innerHTML = ''
   }
-  inputText.value = ''              // 清空绑定变量
-  pendingAttachments.value = []     // 清空待发送附件
+  pendingAttachments.value = []
 
-  setTimeout(() => {
-    if (!messages.value[thinkingIndex]) return
-    messages.value[thinkingIndex].isThinking = false
+  // 获取当前状态
+  const hasOutline = messages.value.some((m) => m.type === 'outline')
+  const hasFile = messages.value.some((m) => m.type === 'file')
 
-    const hasOutline = messages.value.some((m) => m.type === 'outline')
-    const hasFile = messages.value.some((m) => m.type === 'file')
-
-    // 1. 核心修复：如果用户提到“生成PPT”或“确认大纲”，且当前已有大纲
+  try {
+    // ==========================================
+    // 第一次请求：根据大纲生成全新 PPT
+    // ==========================================
     if ((userContent.includes('PPT') || userContent.includes('确认')) && hasOutline) {
       messages.value[thinkingIndex].content = '教案已确认！正在为您精选模板并生成 PPT...'
-      
-      setTimeout(() => {
-        // 发送你原来可以成功预览的那个 PPT Payload
-        messages.value.push({
-          role: 'ai',
-          type: 'file',
-          content: mockOnlyOfficePreviewResponse.data.fileName,
-          previewPayload: mockOnlyOfficePreviewResponse, // 确保这个变量存在且正确
-          showActions: true,
-          suggestions: ['把配色换成科技蓝', '增加三页关于 AI 历史的内容'],
-        })
-        scrollToBottom()
-      }, 2000)
-    } 
-    // 2. 如果已经有文件了，走修改逻辑
-    else if (hasFile) {
-      messages.value[thinkingIndex].content = `收到修改意见。正在为您重新生成...`
-      setTimeout(() => {
-        const newPayload = JSON.parse(JSON.stringify(mockOnlyOfficePreviewResponse))
-        newPayload.data.fileId = "file_" + Date.now() // 必须改ID，右侧预览才会刷新
-        messages.value.push({
-          role: 'ai',
-          type: 'file',
-          content: '修改版_课件.pptx',
-          previewPayload: newPayload,
-          showActions: true
-        })
-        scrollToBottom()
-      }, 2000)
+      const outlineMsg = messages.value.find((m) => m.type === 'outline')
+      // 组装第一次生成的 Payload（这里可能传的是大纲内容/受众等）
+ const payload = buildGeneratePayload({
+  prompt:outlineMsg ? outlineMsg.content : "请生成PPT",
+  attachments: [], // 第一次生成时没有附件（或者从某处获取）
+  sessionId: currentSessionId.value
+}, {
+  audience: messages.value.find(m => m.formType === 'audience')?.formData?.audience || 'college',
+  level: messages.value.find(m => m.formType === 'details')?.formData?.level || 'beginner',
+  duration: messages.value.find(m => m.formType === 'details')?.formData?.duration || '25min'
+})
+
+      // 真实调用
+     // 真实调用
+      const generateResponse = await generatePptApi(payload)
+      const responseData = generateResponse.data || generateResponse
+
+      let taskResult
+      if (responseData.fileId || responseData.directDownloadUrl) {
+        taskResult = responseData // 后端直接返回了文件，直接用！
+      } else {
+        const taskId = extractTaskId(generateResponse)
+        taskResult = await pollTaskUntilFinished(taskId) // 没返回文件才去查进度
+      }
+      const previewPayload = buildPreviewPayload(taskResult)
+
+      // 记录后端返回的 sessionId（以便第二次修改时使用）
+      if (taskResult.sessionId) currentSessionId.value = taskResult.sessionId
+
+      messages.value[thinkingIndex].isThinking = false
+      messages.value.push({
+        role: 'ai',
+        type: 'file',
+        content: previewPayload?.fileName || '已生成完毕.pptx',
+        previewPayload: previewPayload,
+        showActions: true,
+        suggestions: ['把配色换成科技蓝', '增加三页相关历史内容'],
+      })
+      scrollToBottom()
     }
-    // 3. 默认情况（第一次输入）
-    else {
+    // ==========================================
+    // 第二次请求：基于已有 PPT 进行修改
+    // ==========================================
+    else if (hasFile && userContent.includes('修改')) {
+      messages.value[thinkingIndex].content = `收到修改意见。正在为您重新生成...`
+      
+      // ❤️ 【此处是修改关键】
+      // 后端说第二次请求不一样，通常是因为在“修改模式”下：
+      // 1. 需要传入前一次对话的 sessionId，以便 AI 知道你在改哪个 PPT。
+      // 2. prompt 是用户的修改意见（而不是完整大纲）。
+      // 3. 可能需要额外的参数（如 isModify: true），具体看你后端的接口文档。
+   const payload = buildGeneratePayload({
+  prompt: userContent, // 修改意见
+  attachments: [], // 修改时通常不需要重新上传附件
+  sessionId: currentSessionId.value, // 关键：传入sessionId
+  isModify: true // 如果后端需要标识修改操作
+}, {
+  audience: messages.value.find(m => m.formType === 'audience')?.formData?.audience || 'college',
+  level: messages.value.find(m => m.formType === 'details')?.formData?.level || 'beginner',
+  duration: messages.value.find(m => m.formType === 'details')?.formData?.duration || '25min'
+})
+
+      // 真实调用
+    // 真实调用
+      const generateResponse = await generatePptApi(payload)
+      const responseData = generateResponse.data || generateResponse
+
+      let taskResult
+      if (responseData.fileId || responseData.directDownloadUrl) {
+        taskResult = responseData // 后端直接返回了文件，直接用！
+      } else {
+        const taskId = extractTaskId(generateResponse)
+        taskResult = await pollTaskUntilFinished(taskId) // 没返回文件才去查进度
+      }
+      const previewPayload = buildPreviewPayload(taskResult)
+
+      messages.value[thinkingIndex].isThinking = false
+      messages.value.push({
+        role: 'ai',
+        type: 'file',
+        content: previewPayload?.fileName || '修改版_已生成.pptx',
+        previewPayload: previewPayload,
+        showActions: true,
+        suggestions: ['排版很棒，直接下载', '再换个模板看看'],
+      })
+      scrollToBottom()
+    }
+    // 默认情况（第一次输入需求，弹表单）
+    else if (hasFile) {
+      messages.value[thinkingIndex].isThinking = false
+      messages.value[thinkingIndex].content = 'PPT 已经生成啦，如需调整，请在输入框发送“修改 + 您的意见”。'
+    } else {
+      messages.value[thinkingIndex].isThinking = false
       messages.value[thinkingIndex].content = '为了帮您生成更精准的 PPT，请先选择您的课件受众：'
       messages.value.push({
         role: 'ai',
         type: 'form',
+        formType: 'audience',
         isSubmitted: false,
         formData: { audience: 'college' },
       })
     }
-    scrollToBottom()
-  }, 1000)
+  } catch (error: any) {
+    // 错误处理
+    messages.value[thinkingIndex].isThinking = false
+    messages.value[thinkingIndex].content = error?.message || '生成失败，请稍后重试。'
+  }
+  
+  scrollToBottom()
 }
 // 点击推荐词条直接发送
 const sendSuggestion = (text: string) => {
@@ -563,26 +877,179 @@ const submitRequirements = (msg: any) => {
   msg.isSubmitted = true
   // 获取用户选中的受众文字
   const audienceMap: Record<string, string> = {
-    college: '大学/研究生',
+    college: '本科生',
     corporate: '小学生',
-    student: '中学生'
+    student: '中学生',
   }
   const audienceText = audienceMap[msg.formData.audience] || '学生'
+
+  messages.value.push({
+    role: 'user',
+    type: 'text',
+    content: `确认受众：这份课件是给${audienceText}讲的。`,
+  })
+  scrollToBottom()
+ setTimeout(() => {
+    messages.value.push({
+      role: 'ai',
+      type: 'text',
+      content: '收到！为了让大纲更贴合您的需求，请补充以下难度和时间安排：'
+    })
+    messages.value.push({
+      role: 'ai',
+      type: 'form',
+      formType: 'details',
+      isSubmitted: false,
+      formData: { level: 'beginner', duration: '15min' }, // 默认选中入门和25分钟
+    })
+    scrollToBottom()
+  }, 1000)
+}
+ const submitDetailsForm = (msg: any) => {
+  msg.isSubmitted = true
+  
+  const levelMap: Record<string, string> = {
+    beginner: '零基础入门',
+    intermediate: '核心进阶',
+    advanced: '深度专业探讨'
+  }
+  const durationMap: Record<string, string> = {
+    '10min': '10分钟',
+    '25min': '25分钟',
+    '45min': '45分钟'
+  }
+  
+  const levelText = levelMap[msg.formData.level] || '入门'
+  const durationText = durationMap[msg.formData.duration] || '25分钟'
 
   messages.value.push({ 
     role: 'user', 
     type: 'text', 
-    content: `确认需求：这份课件是给${audienceText}讲的，请生成教案大纲。` 
+    content: `确认细节：课程难度定位为【${levelText}】，预计讲解时长为【${durationText}】。请生成教案大纲。` 
   })
   scrollToBottom()
 
-  // 模拟 AI 思考后生成大纲
+  // 模拟 AI 思考后生成大纲 (替换为你的 Transformer 真实数据)
   setTimeout(() => {
+    const mockResponse = {
+      outline: ` # Transformer 教案...`
+    }
+    
+    
     messages.value.push({
       role: 'ai',
       type: 'outline',
-      content: `# ${audienceText}教学大纲\n\n## 第一章：课程导入\n- 趣味案例引入\n- 核心概念初探\n\n## 第二章：深度解析\n- 知识点 A 的逻辑\n- 互动实验设计\n\n## 第三章：总结回顾\n- 课堂测试\n- 课后作业`,
-      suggestions: ['确认大纲，生成 PPT', '内容太深了，简单一点', '增加更多互动环节'],
+      content: ` # Transformer 教案
+
+## 基本信息
+
+- 课程名称：Transformer
+- 授课对象：undergraduate（本科生）
+- 知识深度：零基础入门
+- 授课时长：25分钟
+- 生成日期：2026-03-26
+
+## 共源对齐
+
+- 共源 slide 数：11
+- 章节数：6
+- 素材原因覆盖率：1.0
+- 主线锚点：Transformer、Transformer：序列建模的新范式、序列建模方法回顾、Transformer 整体架构、Transformer 结构图示
+
+---
+
+## 教学目标
+
+### 知识目标
+- 理解 Transformer 模型的基本结构与原理
+- 掌握自注意力机制的核心思想及其在 Transformer 中的作用
+
+### 能力目标
+- 能够识别 Transformer 模型中的主要组件
+- 能够分析自注意力机制在序列建模中的应用
+
+### 情感目标
+- 激发学生对深度学习模型创新的兴趣
+
+---
+
+## 教学重点与难点
+
+- 教学重点：详细介绍 Transformer 模型及其自注意力机制的基本原理
+- 教学难点：自注意力机制中 Query、Key、Value 匹配过程的理解
+
+---
+
+## 教学流程
+
+### 环节 1：Transformer
+- 预计时长：3 分钟
+- 对应页面：Slide 1
+- 教师动作：开场介绍：欢迎进入《Transformer》的学习。面向对象：本科生。课堂定位：建立整体认知与学习目标。
+- 学生活动：结合教师提问参与讨论，用自己的语言复述关键概念并完成即时反馈。
+- 板书建议：Transformer：理解 Transformer 模型的基本结构与原理；掌握自注意力机制的核心思想及其在 Transformer 中的作用
+
+### 环节 2：Transformer：序列建模的新范式
+- 预计时长：3 分钟
+- 对应页面：Slide 2
+- 教师动作：说明课程主题、学习目标，回扣开场问题：为什么传统序列模型难以处理长距离依赖？
+- 学生活动：参与讨论，复述关键概念并完成即时反馈。
+- 板书建议：Transformer：序列建模的新范式：课程主题；学习目标
+
+### 环节 3：序列建模方法回顾
+- 预计时长：3 分钟
+- 对应页面：Slide 3
+- 教师动作：说明 RNN 结构特点、局限性，提问：RNN/CNN 在处理长序列时存在哪些问题？
+- 学生活动：结合已知线性代数和概率基础参与讨论。
+- 板书建议：序列建模方法回顾：RNN 结构特点；RNN 局限性
+
+### 环节 4：Transformer 整体架构
+- 预计时长：3 分钟
+- 对应页面：Slide 4
+- 教师动作：说明完全基于注意力机制、编码器-解码器结构，强调不依赖循环结构。
+- 学生活动：参与讨论并完成即时反馈。
+- 板书建议：Transformer 整体架构：完全基于注意力机制；编码器-解码器结构
+
+### 环节 5：Transformer 结构图示
+- 预计时长：3 分钟
+- 对应页面：Slide 5
+- 教师动作：说明编码器堆叠、解码器自注意力，引导观察模块输入输出关系。
+- 板书建议：Transformer 结构图示：编码器堆叠；解码器自注意力
+
+### 环节 6：自注意力机制详解
+- 预计时长：3 分钟
+- 对应页面：Slide 6
+- 教师动作：说明与上一部分衔接，结合线性代数基础提问 Query, Key, Value 角色。
+- 板书建议：自注意力机制详解：Query、Key、Value 表示；相关性打分
+
+### 环节 7：自注意力机制互动测验
+- 预计时长：3 分钟
+- 对应页面：Slide 7
+- 教师动作：让学生独立作答后分组讨论，讲解正确思路。
+- 学生活动：独立作答，同伴核对，修正理解。
+
+### 环节 8：实验结果与性能对比
+- 预计时长：3 分钟
+- 对应页面：Slide 8
+- 教师动作：分析图表数据，提问 BLEU 分数提升及训练成本降低的意义。
+
+### 环节 9：课程回顾与思考
+- 预计时长：3 分钟
+- 对应页面：Slide 9
+- 教师动作：说明创新意义与核心价值，布置课后思考题。
+
+### 环节 10：课堂检测：知识迁移应用
+- 预计时长：3 分钟
+- 对应页面：Slide 10
+- 教师动作：尝试新任务应用，收集答案点评。
+
+---
+
+## 课后建议
+
+- 复盘 Transformer 的核心知识点与关键应用。
+- 根据课堂问答和练习结果调整下次授课节奏。`,
+      suggestions: ['确认大纲没问题，直接生成 PPT', '把第7环节测验改成具体代码演示', '时间太紧，删减最后两个环节'],
     })
     scrollToBottom()
   }, 1500)
@@ -656,29 +1123,24 @@ const closePreview = () => {
   currentPreviewPayload.value = null
 }
 const startNewChat = () => {
-  // 1. 判断当前对话是否值得保存 (即：除了 AI 的第一句问候，用户有没有发过消息)
+  // 1. 判断当前对话是否值得保存
   const hasUserMessages = messages.value.some((msg) => msg.role === 'user')
 
   if (hasUserMessages) {
-    // 尝试从用户的第一句话中提取标题
     const firstUserMsg = messages.value.find((msg) => msg.role === 'user')
     let chatTitle = firstUserMsg && firstUserMsg.content ? firstUserMsg.content : '未命名对话'
-
-    // 如果标题太长，截断它
     if (chatTitle.length > 15) {
       chatTitle = chatTitle.substring(0, 15) + '...'
     }
 
-    // 2. 将当前对话保存到历史记录的最前面
-    historyList.value.unshift({
-      id: Date.now(), // 用当前时间戳作为唯一标识
-      title: chatTitle,
-      // 深拷贝当前消息记录，防止后续清空时被联动清空
-      messagesData: JSON.parse(JSON.stringify(messages.value)),
-    })
+ historyStore.list.unshift({
+    id: Date.now(),
+    title: chatTitle,
+    messagesData: JSON.parse(JSON.stringify(messages.value))
+  })
   }
 
-  // 3. 恢复初始欢迎语，清空当前画布
+  // 2. 恢复初始欢迎语，清空当前画布
   messages.value = [
     {
       role: 'ai',
@@ -688,12 +1150,51 @@ const startNewChat = () => {
     },
   ]
 
-  // 4. 清空输入框和各种状态
+  // 3. 彻底清空输入框和各种状态 (不仅清空文本，还要清空富文本的 HTML 标签)
   inputText.value = ''
+  if (editorRef.value) {
+    editorRef.value.innerHTML = '' // 核心：清空带颜色的 @ 标签
+    editorRef.value.innerText = '' 
+  }
+  
   pendingAttachments.value = []
   if (isRecording.value) stopVoiceInput()
 
+  // 4. 调用 SideBar 子组件暴露的方法，取消知识库勾选
+  if (sideBarRef.value && sideBarRef.value.resetKnowledgeBase) {
+    sideBarRef.value.resetKnowledgeBase()
+  }
+
   scrollToBottom()
+}
+// ================= 历史记录操作逻辑 =================
+
+// 1. 删除历史
+const handleDeleteHistory = (id: number) => {
+  // 直接操作 store 里的数组，它会自动触发 watch 写入 localStorage
+  historyStore.list = historyStore.list.filter(item => item.id !== id)
+}
+
+// 2. 置顶历史
+const handlePinHistory = (id: number) => {
+  const index = historyList.value.findIndex(item => item.id === id)
+  if (index > 0) {
+    // 把它从原位置拔出来，塞到数组最前面
+    const [pinnedItem] = historyList.value.splice(index, 1)
+    historyList.value.unshift(pinnedItem)
+  }
+}
+
+// 3. 重命名历史
+const handleRenameHistory = (item: any) => {
+  // 使用浏览器自带的 prompt 弹窗获取新名字，你也可以换成 Element Plus 的 ElMessageBox
+  const newTitle = prompt('请输入新的对话名称：', item.title)
+  if (newTitle !== null && newTitle.trim() !== '') {
+    const target = historyList.value.find(h => h.id === item.id)
+    if (target) {
+      target.title = newTitle.trim()
+    }
+  }
 }
 </script>
 
@@ -1224,7 +1725,7 @@ const startNewChat = () => {
   white-space: pre-wrap;
   word-wrap: break-word;
 }
- .outline-card {
+.outline-card {
   background: #ffffff;
   border: 1px solid #e8e8e8;
   border-radius: 12px;
@@ -1275,7 +1776,7 @@ const startNewChat = () => {
 .outline-editor {
   outline: none;
   line-height: 1.8;
-  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
   font-size: 14px;
   color: #444;
   white-space: pre-wrap;
@@ -1316,5 +1817,44 @@ const startNewChat = () => {
     opacity: 1;
     transform: translateX(0);
   }
+}
+.outline-editor :deep(h1) {
+  font-size: 20px;
+  font-weight: bold;
+  margin: 16px 0 10px;
+  color: #1f2328;
+}
+
+.outline-editor :deep(h2) {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 16px 0 8px;
+  color: #24292f;
+  border-bottom: 1px solid #eaecef;
+  padding-bottom: 6px;
+}
+
+.outline-editor :deep(h3) {
+  font-size: 15px;
+  font-weight: bold;
+  margin: 12px 0 6px;
+  color: #444;
+}
+
+.outline-editor :deep(li) {
+  margin-left: 22px;
+  list-style-type: disc;
+  margin-bottom: 6px;
+  line-height: 1.6;
+}
+
+.outline-editor :deep(hr) {
+  border: none;
+  border-top: 2px dashed #e1e4e8;
+  margin: 20px 0;
+}
+
+.outline-editor :deep(strong) {
+  color: #ff5722;
 }
 </style>
