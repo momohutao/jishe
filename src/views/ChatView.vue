@@ -388,7 +388,7 @@ import { useHistoryStore } from '@/stores/history' // 👈 引入你的 store
 
 const historyStore = useHistoryStore()
 const route = useRoute() 
-const TASK_POLL_INTERVAL = 2500
+const TASK_POLL_INTERVAL = 5000
 const TASK_POLL_MAX_ATTEMPTS = 180
 const sleep = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms))
 const unwrapPayload = (payload: any) => payload?.data ?? payload ?? {}
@@ -754,6 +754,7 @@ const handleSend = async () => {
     // ==========================================
     if ((userContent.includes('PPT') || userContent.includes('确认')) && hasOutline) {
       messages.value[thinkingIndex].content = '教案已确认！正在为您精选模板并生成 PPT...'
+        await sleep(5000)
       const outlineMsg = messages.value.find((m) => m.type === 'outline')
       // 组装第一次生成的 Payload（这里可能传的是大纲内容/受众等）
  const payload = buildGeneratePayload({
@@ -799,7 +800,7 @@ const handleSend = async () => {
     // ==========================================
     else if (hasFile && userContent.includes('修改')) {
       messages.value[thinkingIndex].content = `收到修改意见。正在为您重新生成...`
-      
+      await sleep(5000)
       // ❤️ 【此处是修改关键】
       // 后端说第二次请求不一样，通常是因为在“修改模式”下：
       // 1. 需要传入前一次对话的 sessionId，以便 AI 知道你在改哪个 PPT。
@@ -927,20 +928,18 @@ const submitRequirements = (msg: any) => {
     type: 'text', 
     content: `确认细节：课程难度定位为【${levelText}】，预计讲解时长为【${durationText}】。请生成教案大纲。` 
   })
+  const thinkingIndex = messages.value.length
+  messages.value.push({ role: 'ai', isThinking: true, content: '', type: 'text' })
   scrollToBottom()
 
   // 模拟 AI 思考后生成大纲 (替换为你的 Transformer 真实数据)
   setTimeout(() => {
-    const mockResponse = {
-      outline: ` # Transformer 教案...`
-    }
+     
+    messages.value[thinkingIndex].isThinking = false
+    messages.value[thinkingIndex].type = 'outline'
+    messages.value[thinkingIndex].content = ` # Transformer 教案
     
-    
-    messages.value.push({
-      role: 'ai',
-      type: 'outline',
-      content: ` # Transformer 教案
-
+     
 ## 基本信息
 
 - 课程名称：Transformer
@@ -1049,10 +1048,9 @@ const submitRequirements = (msg: any) => {
 
 - 复盘 Transformer 的核心知识点与关键应用。
 - 根据课堂问答和练习结果调整下次授课节奏。`,
-      suggestions: ['确认大纲没问题，直接生成 PPT', '把第7环节测验改成具体代码演示', '时间太紧，删减最后两个环节'],
-    })
+       messages.value[thinkingIndex].suggestions = ['确认大纲没问题，直接生成 PPT', '把第7环节测验改成具体代码演示', '时间太紧，删减最后两个环节']
     scrollToBottom()
-  }, 1500)
+  },5000)
 }
 
 // 2. 新增大纲导出 Word 的功能
