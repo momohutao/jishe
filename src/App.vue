@@ -46,6 +46,9 @@ body {
   margin: 0;
   overflow-x: hidden; /* 避免意外水平滚动条 */
 }
+.vue-devtools__panel{
+display: none !important;
+}
 </style>
 <style scoped>
 #app {
