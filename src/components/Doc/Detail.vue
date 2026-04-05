@@ -12,7 +12,7 @@ const goToLogin = () => {
   <div class="detail">
     <div class="left total">
       <div class="pic">
-        <div class="img"><img src="" alt="" /></div>
+        <div class="img"><img src="../../assets/images/教案.png" alt="" /></div>
       </div>
       <div class="big">不止是编辑器，更是强大的 AI 写作助手</div>
       <div class="small">
@@ -22,7 +22,7 @@ const goToLogin = () => {
     </div>
     <div class="right total">
       <div class="pic">
-        <div class="img"><img src="" alt="" /></div>
+        <div class="img"><img src="../../assets/images/修改教案.png" alt="" /></div>
       </div>
       <div class="big">借助对话式 AI 优化内容</div>
       <div class="small">
@@ -55,6 +55,12 @@ const goToLogin = () => {
   height: 100%;
   /* background-color: skyblue; */
   border-radius: 20px;
+}
+
+.detail .total .pic img {
+  width: 100%;
+  height: 100%;
+    border-radius: 20px;
 }
 
 .detail .total .big {

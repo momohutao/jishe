@@ -10,9 +10,9 @@
     <div ref="transformWrap" class="animate-section">
       <Transform />
     </div>
-    <div ref="cooperationWrap" class="animate-section">
+    <!-- <div ref="cooperationWrap" class="animate-section">
       <Cooperation />
-    </div>
+    </div> -->
     <div ref="bottomBarWrap" class="animate-section">
       <BottomBar />
     </div>
@@ -24,7 +24,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import Total from '@/components/Doc/Total.vue'
 import Detail from '@/components/Doc/Detail.vue'
 import Transform from '@/components/Doc/Transform.vue'
-import Cooperation from '@/components/Doc/Cooperation.vue'
+// import Cooperation from '@/components/Doc/Cooperation.vue'
 import BottomBar from '@/components/Home/BottomBar.vue'
 
 // 为每个包装元素创建 ref

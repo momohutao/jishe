@@ -81,7 +81,7 @@
     <!-- 卡片区块：使用了 left/right 组件，并通过插槽传入自定义内容 -->
     <left>
       <template #video>
-        <img src="" class="custom-video" alt="video placeholder" />
+        <img src="../../assets/images/修改PPT.png" class="custom-video" alt="video placeholder" />
       </template>
       <template #title>
         <h3 class="custom-title">点击、输入并更改所有元素</h3>
@@ -96,7 +96,7 @@
 
     <right>
       <template #video>
-        <img src="" class="custom-video" alt="video placeholder" />
+        <img src="../../assets/images/下载.png" class="custom-video" alt="video placeholder" />
       </template>
       <template #title>
         <h3 class="custom-title">以像素级精度导出到 PowerPoint</h3>
@@ -112,7 +112,7 @@
 
     <left>
       <template #video>
-        <img src="" class="custom-video" alt="video placeholder" />
+        <img src="../../assets/images/使用模板.png" class="custom-video" alt="video placeholder" />
       </template>
       <template #title>
         <h3 class="custom-title">始终贴合品牌，始终模板完美</h3>
@@ -127,7 +127,7 @@
 
     <right>
       <template #video>
-        <img src="" class="custom-video" alt="video placeholder" />
+        <img src="../../assets/images/图表.png" class="custom-video" alt="video placeholder" />
       </template>
       <template #title>
         <h3 class="custom-title">可完全编辑的图表 —— 非图片形式</h3>
